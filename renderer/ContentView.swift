@@ -99,7 +99,26 @@ struct Renderer3d {
     
     func render(shape3d: ClosedShape<Point3d>) -> ClosedShape<Point2d> {
         
-        let wireframe = shape3d.orderedVertices
+    
+        let wireframe = shape3d.orderedVertices.flatMap { vertex in
+            let sortedByDistance = shape3d.orderedVertices.sorted { (first, second) in
+                func distance(a: Point3d, b: Point3d) -> Double {
+                    return sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2) + pow(b.z - a.z, 2))
+                }
+                
+                let distancea
+            
+                return abs(distance(a: vertex, b: first)) <= abs(distance(a: vertex, b: second))
+            }
+            print("sortedByDistance: \(sortedByDistance)")
+            
+            let closest3 = sortedByDistance.prefix(3)
+            print("closest3: \(closest3)")
+            
+            return closest3.flatMap { otherVertex in
+                [vertex, otherVertex]
+            }
+        }
         
 //        let wireframe = shape3d.orderedVertices.flatMap { vertex in
 //            shape3d.orderedVertices.flatMap { otherVertex in
@@ -176,16 +195,6 @@ struct ContentView: View {
                     yAngleRadians += yRotation
                     
                 })
-//                .onEnded({ it in
-//                    print("Moust up")
-//                    let distanceDragged = hypot(it.translation.width, it.translation.height)
-//                    let dragDirection = atan2(it.location.x - it.startLocation.x, it.location.y - it.startLocation.y)
-//                    print("distanceDragged: \(distanceDragged)")
-//                    print("dragDirection: \(dragDirection)")
-//                    
-//                    xAngleRadians += it.translation.height/500
-//                    yAngleRadians += it.translation.width/500
-//                })
         )
         .onKeyPress { press in
             switch (press.key) {
