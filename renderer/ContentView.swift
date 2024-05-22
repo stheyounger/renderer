@@ -160,16 +160,21 @@ struct ContentView: View {
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged({ it in
-                    print("Moust down")
-                    
-                    print("it.translation.height: \(it.translation.height)")
-                    print("it.translation.width: \(it.translation.width)")
                     print("it.velocity.width: \(it.velocity.width)")
+                    print("it.velocity.height: \(it.velocity.height)")
                     
+                    let xRotation = veloToRadian(velocity: it.velocity.height)
+                    let yRotation = veloToRadian(velocity: it.velocity.width)
+                    print("xRotation: \(xRotation)")
+                    print("yRotation: \(yRotation)")
                     
+                    func veloToRadian(velocity: Double) -> Double {
+                        return (min(velocity, 20)/20) * (Double.pi/200)
+                    }
                     
-                    xAngleRadians += it.translation.height/800
-                    yAngleRadians += it.translation.width/800
+                    xAngleRadians += xRotation
+                    yAngleRadians += yRotation
+                    
                 })
 //                .onEnded({ it in
 //                    print("Moust up")
