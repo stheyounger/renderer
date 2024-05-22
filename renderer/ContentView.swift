@@ -99,14 +99,13 @@ struct Renderer3d {
     
     func render(shape3d: ClosedShape<Point3d>) -> ClosedShape<Point2d> {
         
-        let wireframe = shape3d.orderedVertices.flatMap { vertex in
-            shape3d.orderedVertices.flatMap { otherVertex in
-                [
-                    vertex,
-                    otherVertex
-                ]
-            }
-        }
+        let wireframe = shape3d.orderedVertices
+        
+//        let wireframe = shape3d.orderedVertices.flatMap { vertex in
+//            shape3d.orderedVertices.flatMap { otherVertex in
+//                [vertex, otherVertex]
+//            }
+//        }
         
         
         let flattened = wireframe.map { vertex in
@@ -142,9 +141,6 @@ struct ContentView: View {
             
             let projection = renderer.render(shape3d: shape)
             
-            print("\nshape: \(shape.orderedVertices.count)")
-            print("\nprojection: \(projection.orderedVertices.count)\n")
-            
             let path = CGMutablePath()
             for (i, vertex) in projection.orderedVertices.enumerated() {
                 let point = CGPoint(x: vertex.x, y: vertex.y)
@@ -159,8 +155,33 @@ struct ContentView: View {
                            with: .color(.green),
                            lineWidth: 3)
         }
-        .frame(width: 300, height: 200)
+//        .frame(width: 300, height: 200)
         .focusable()
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged({ it in
+                    print("Moust down")
+                    
+                    print("it.translation.height: \(it.translation.height)")
+                    print("it.translation.width: \(it.translation.width)")
+                    print("it.velocity.width: \(it.velocity.width)")
+                    
+                    
+                    
+                    xAngleRadians += it.translation.height/800
+                    yAngleRadians += it.translation.width/800
+                })
+//                .onEnded({ it in
+//                    print("Moust up")
+//                    let distanceDragged = hypot(it.translation.width, it.translation.height)
+//                    let dragDirection = atan2(it.location.x - it.startLocation.x, it.location.y - it.startLocation.y)
+//                    print("distanceDragged: \(distanceDragged)")
+//                    print("dragDirection: \(dragDirection)")
+//                    
+//                    xAngleRadians += it.translation.height/500
+//                    yAngleRadians += it.translation.width/500
+//                })
+        )
         .onKeyPress { press in
             switch (press.key) {
                 case KeyEquivalent.leftArrow:
