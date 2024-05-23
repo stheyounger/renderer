@@ -59,12 +59,13 @@ struct Point3d {
     }
 }
 
-
-struct ClosedShape<Point> {
-    let orderedVertices: [Point]
+struct Line<Point> {
+    let start: Point
+    let end: Point
     
-    init (orderedVertices: [Point]) {
-        self.orderedVertices = orderedVertices
+    init (start: Point, end: Point) {
+        self.start = start
+        self.end = end
     }
 }
 
@@ -104,6 +105,13 @@ struct Cube {
             Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
                      Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
                      Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
+            
+            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
+            Triangle(Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
         ]
             
         self.polygonMesh = PolygonMesh(triangles: triangles)
@@ -134,12 +142,6 @@ struct Triangle {
     }
 }
 
-//struct PolygonalSurface {
-//    let triangles: [Triangle]
-//    
-//    init (triangles: [Triangle])
-//}
-
 struct PolygonMesh {
     let triangles: [Triangle]
     
@@ -165,50 +167,24 @@ struct PolygonMesh {
 }
 
 struct Renderer3d {
-    
-    func render(shape3d: PolygonMesh) -> ClosedShape<Point2d> {
+    func render(shape3d: PolygonMesh) -> [Line<Point2d>] {
         
         let wireframe = shape3d.triangles.flatMap { triangle in
             triangle.orderedVertices.flatMap { vertex in
-                triangle.orderedVertices.flatMap { otherVertex in
-                    [vertex, otherVertex]
+                triangle.orderedVertices.map { otherVertex in
+                    Line(start: vertex, end: otherVertex)
                 }
             }
         }
-    
-//        let wireframe = shape3d.orderedVertices.flatMap { vertex in
-//            let sortedByDistance = shape3d.orderedVertices.sorted { (first, second) in
-//                func distance(a: Point3d, b: Point3d) -> Double {
-//                    return sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2) + pow(b.z - a.z, 2))
-//                }
-//                
-//                let distancea
-//            
-//                return abs(distance(a: vertex, b: first)) <= abs(distance(a: vertex, b: second))
-//            }
-//            print("sortedByDistance: \(sortedByDistance)")
-//            
-//            let closest3 = sortedByDistance.prefix(3)
-//            print("closest3: \(closest3)")
-//            
-//            return closest3.flatMap { otherVertex in
-//                [vertex, otherVertex]
-//            }
-//        }
         
-//        let wireframe = shape3d.orderedVertices.flatMap { vertex in
-//            shape3d.orderedVertices.flatMap { otherVertex in
-//                [vertex, otherVertex]
-//            }
-//        }
-        
-        
-        let flattened = wireframe.map { vertex in
-            Point2d(x: vertex.x, y: vertex.y)
+        let flattened = wireframe.map { line in
+            let start2d = Point2d(x: line.start.x, y: line.start.y)
+            let end2d = Point2d(x: line.end.x, y: line.end.y)
+            return Line(start: start2d, end: end2d)
         }
         
         
-        return ClosedShape(orderedVertices: flattened)
+        return flattened
     }
 }
 
@@ -235,13 +211,13 @@ struct ContentView: View {
             let projection = renderer.render(shape3d: rotatedCube)
             
             let path = CGMutablePath()
-            for (i, vertex) in projection.orderedVertices.enumerated() {
-                let point = CGPoint(x: vertex.x, y: vertex.y)
-                if (i == 0) {
-                    path.move(to: point)
-                } else {
-                    path.addLine(to: point)
-                }
+            for (i, line) in projection.enumerated() {
+                
+                let start = CGPoint(x: line.start.x, y: line.start.y)
+                path.move(to: start)
+                
+                let end = CGPoint(x: line.end.x, y: line.end.y)
+                path.addLine(to: end)
             }
             
             context.stroke(Path(path),
