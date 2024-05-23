@@ -187,12 +187,15 @@ struct PolygonMesh {
 }
 
 struct Renderer3d {
-    func render(shape3d: PolygonMesh) -> [Line<Point2d>] {
+    
+    func render(shapes: [PolygonMesh]) -> [Line<Point2d>] {
         
-        let wireframe = shape3d.triangles.flatMap { triangle in
-            triangle.orderedVertices.flatMap { vertex in
-                triangle.orderedVertices.map { otherVertex in
-                    Line(start: vertex, end: otherVertex)
+        let wireframe = shapes.flatMap { shape in
+            shape.triangles.flatMap { triangle in
+                triangle.orderedVertices.flatMap { vertex in
+                    triangle.orderedVertices.map { otherVertex in
+                        Line(start: vertex, end: otherVertex)
+                    }
                 }
             }
         }
@@ -202,7 +205,6 @@ struct Renderer3d {
             let end2d = Point2d(x: line.end.x, y: line.end.y)
             return Line(start: start2d, end: end2d)
         }
-        
         
         return flattened
     }
@@ -218,7 +220,8 @@ struct ContentView: View {
     var body: some View {
     
         let cubeOrigin = Point3d(x: 100, y: 100, z: 100)
-        let cube = Cube(origin: cubeOrigin, sideLength: 60)
+        let cube = Cube(origin: cubeOrigin, sideLength: 60).polygonMesh
+        let cube2 = Cube(origin: Point3d(x: 200, y: 100, z: 100), sideLength: 60).polygonMesh
         
         
         let renderer = Renderer3d()
@@ -226,9 +229,9 @@ struct ContentView: View {
         Canvas { context, size in
             
             
-            let rotatedCube = cube.polygonMesh.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
+            let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
             
-            let projection = renderer.render(shape3d: rotatedCube)
+            let projection = renderer.render(shapes: [rotatedCube, cube2])
             
             let path = CGMutablePath()
             for (i, line) in projection.enumerated() {
