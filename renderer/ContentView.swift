@@ -27,6 +27,36 @@ struct Point3d {
         self.y = y
         self.z = z
     }
+    
+    func rotateAroundZ(rotationCenter: Point3d, angleRadians: Double) -> Point3d {
+        let distanceFromRotationCenter = hypot(self.x - rotationCenter.x, self.y - rotationCenter.y)
+        let angleToRotationCenterRad = atan2(self.y - rotationCenter.y, self.x - rotationCenter.x) + angleRadians
+            
+        let rotated =  Point3d(x: rotationCenter.x + (cos(angleToRotationCenterRad) * distanceFromRotationCenter),
+                           y: rotationCenter.y + (sin(angleToRotationCenterRad) * distanceFromRotationCenter),
+                           z: self.z)
+        return rotated
+    }
+    
+    func rotateAroundY(rotationCenter: Point3d, angleRadians: Double) -> Point3d {
+        let distanceFromRotationCenter = hypot(self.x - rotationCenter.x, self.z - rotationCenter.z)
+        let angleToRotationCenterRad = atan2(self.z - rotationCenter.z, self.x - rotationCenter.x) + angleRadians
+        
+        let rotated = Point3d(x: rotationCenter.x + (cos(angleToRotationCenterRad) * distanceFromRotationCenter),
+                       y: self.y,
+                       z: rotationCenter.z + (sin(angleToRotationCenterRad) * distanceFromRotationCenter))
+        return rotated
+    }
+    
+    func rotateAroundX(rotationCenter: Point3d, angleRadians: Double) -> Point3d {
+        let distanceFromRotationCenter = hypot(self.y - rotationCenter.y, self.z - rotationCenter.z)
+        let angleToRotationCenterRad = atan2(self.z - rotationCenter.z, self.y - rotationCenter.y) + angleRadians
+        
+        let rotated = Point3d(x: self.x,
+                       y: rotationCenter.y + (sin(angleToRotationCenterRad) * distanceFromRotationCenter),
+                       z: rotationCenter.z + (cos(angleToRotationCenterRad) * distanceFromRotationCenter))
+        return rotated
+    }
 }
 
 
@@ -39,86 +69,132 @@ struct ClosedShape<Point> {
 }
 
 struct Cube {
-    let vertices: [Point3d]
-    
-    init (vertices: [Point3d]) {
-        self.vertices = vertices
-    }
+    let polygonMesh: PolygonMesh
+
     init (origin: Point3d, sideLength: Double) {
         let halfLength = sideLength/2
-        self.vertices = [
-            Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-            Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-            Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
-            Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
-            Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-            Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-            Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-            Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+        
+        //12 tringles, 2 per side
+        
+        let triangles = [
+            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
+                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+            
+            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
+            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
+            
+            Triangle(Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
+                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+            Triangle(Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+            
+            Triangle(Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
+            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
         ]
+            
+        self.polygonMesh = PolygonMesh(triangles: triangles)
+        
+//        self.polygonMesh = [
+//            Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+//            Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+//            Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
+//            Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
+//            Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//            Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//            Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+//            Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+//        ]
+    }
+}
+
+
+struct Triangle {
+    let orderedVertices: [Point3d]
+    
+    init(_ vertex1: Point3d, _ vertex2: Point3d, _ vertex3: Point3d) {
+        self.orderedVertices = [vertex1, vertex2, vertex3]
     }
     
-    func rotateAroundZ(rotationCenter: Point3d, angleRadians: Double) -> Cube {
-        let rotated = Cube(vertices: vertices.map { point in
-            let distanceFromRotationCenter = hypot(point.x - rotationCenter.x, point.y - rotationCenter.y)
-            let angleToRotationCenterRad = atan2(point.y - rotationCenter.y, point.x - rotationCenter.x) + angleRadians
-            
-            return Point3d(x: rotationCenter.x + (cos(angleToRotationCenterRad) * distanceFromRotationCenter),
-                           y: rotationCenter.y + (sin(angleToRotationCenterRad) * distanceFromRotationCenter),
-                           z: point.z)
-        })
-        return rotated
+    init(orderedVertices: [Point3d]) {
+        self.orderedVertices = orderedVertices
+    }
+}
+
+//struct PolygonalSurface {
+//    let triangles: [Triangle]
+//    
+//    init (triangles: [Triangle])
+//}
+
+struct PolygonMesh {
+    let triangles: [Triangle]
+    
+    init(triangles: [Triangle]) {
+        self.triangles = triangles
     }
     
-    func rotateAroundY(rotationCenter: Point3d, angleRadians: Double) -> Cube {
-        let rotated = Cube(vertices: vertices.map { point in
-            let distanceFromRotationCenter = hypot(point.x - rotationCenter.x, point.z - rotationCenter.z)
-            let angleToRotationCenterRad = atan2(point.z - rotationCenter.z, point.x - rotationCenter.x) + angleRadians
-            
-            return Point3d(x: rotationCenter.x + (cos(angleToRotationCenterRad) * distanceFromRotationCenter),
-                           y: point.y,
-                           z: rotationCenter.z + (sin(angleToRotationCenterRad) * distanceFromRotationCenter))
-        })
-        return rotated
-    }
     
-    func rotateAroundX(rotationCenter: Point3d, angleRadians: Double) -> Cube {
-        let rotated = Cube(vertices: vertices.map { point in
-            let distanceFromRotationCenter = hypot(point.y - rotationCenter.y, point.z - rotationCenter.z)
-            let angleToRotationCenterRad = atan2(point.z - rotationCenter.z, point.y - rotationCenter.y) + angleRadians
-            
-            return Point3d(x: point.x,
-                           y: rotationCenter.y + (sin(angleToRotationCenterRad) * distanceFromRotationCenter),
-                           z: rotationCenter.z + (cos(angleToRotationCenterRad) * distanceFromRotationCenter))
+    func rotateAroundY(rotationCenter: Point3d, angleRadians: Double) -> PolygonMesh {
+        return PolygonMesh(triangles: triangles.map { triangle in
+            Triangle(orderedVertices: triangle.orderedVertices.map { vertex in
+                vertex.rotateAroundY(rotationCenter: rotationCenter, angleRadians: angleRadians)
+            })
         })
-        return rotated
+    }
+    func rotateAroundX(rotationCenter: Point3d, angleRadians: Double) -> PolygonMesh {
+        return PolygonMesh(triangles: triangles.map { triangle in
+            Triangle(orderedVertices: triangle.orderedVertices.map { vertex in
+                vertex.rotateAroundX(rotationCenter: rotationCenter, angleRadians: angleRadians)
+            })
+        })
     }
 }
 
 struct Renderer3d {
     
-    func render(shape3d: ClosedShape<Point3d>) -> ClosedShape<Point2d> {
+    func render(shape3d: PolygonMesh) -> ClosedShape<Point2d> {
         
-    
-        let wireframe = shape3d.orderedVertices.flatMap { vertex in
-            let sortedByDistance = shape3d.orderedVertices.sorted { (first, second) in
-                func distance(a: Point3d, b: Point3d) -> Double {
-                    return sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2) + pow(b.z - a.z, 2))
+        let wireframe = shape3d.triangles.flatMap { triangle in
+            triangle.orderedVertices.flatMap { vertex in
+                triangle.orderedVertices.flatMap { otherVertex in
+                    [vertex, otherVertex]
                 }
-                
-                let distancea
-            
-                return abs(distance(a: vertex, b: first)) <= abs(distance(a: vertex, b: second))
-            }
-            print("sortedByDistance: \(sortedByDistance)")
-            
-            let closest3 = sortedByDistance.prefix(3)
-            print("closest3: \(closest3)")
-            
-            return closest3.flatMap { otherVertex in
-                [vertex, otherVertex]
             }
         }
+    
+//        let wireframe = shape3d.orderedVertices.flatMap { vertex in
+//            let sortedByDistance = shape3d.orderedVertices.sorted { (first, second) in
+//                func distance(a: Point3d, b: Point3d) -> Double {
+//                    return sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2) + pow(b.z - a.z, 2))
+//                }
+//                
+//                let distancea
+//            
+//                return abs(distance(a: vertex, b: first)) <= abs(distance(a: vertex, b: second))
+//            }
+//            print("sortedByDistance: \(sortedByDistance)")
+//            
+//            let closest3 = sortedByDistance.prefix(3)
+//            print("closest3: \(closest3)")
+//            
+//            return closest3.flatMap { otherVertex in
+//                [vertex, otherVertex]
+//            }
+//        }
         
 //        let wireframe = shape3d.orderedVertices.flatMap { vertex in
 //            shape3d.orderedVertices.flatMap { otherVertex in
@@ -154,11 +230,9 @@ struct ContentView: View {
         Canvas { context, size in
             
             
-            let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
+            let rotatedCube = cube.polygonMesh.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
             
-            let shape = ClosedShape(orderedVertices: rotatedCube.vertices)
-            
-            let projection = renderer.render(shape3d: shape)
+            let projection = renderer.render(shape3d: rotatedCube)
             
             let path = CGMutablePath()
             for (i, vertex) in projection.orderedVertices.enumerated() {
