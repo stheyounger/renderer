@@ -74,58 +74,78 @@ struct Cube {
 
     init (origin: Point3d, sideLength: Double) {
         let halfLength = sideLength/2
+    
+//        let triangles = [
+//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
+//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+//            
+//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
+//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
+//            
+//            Triangle(Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
+//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+//            
+//            Triangle(Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+//                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
+//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
+//            
+//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
+//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
+//        ]
         
-        //12 tringles, 2 per side
+        
+//        let dfsa: (String, Int) = ("hi", 2)
+        
+        let vertices = [
+            Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+            Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
+            Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
+            Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
+            
+            Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+            Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+            Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
+            Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
+        ]
         
         let triangles = [
-            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
-            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
-                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+            //Top
+            Triangle(vertices[0], vertices[1], vertices[3]),
+            Triangle(vertices[2], vertices[1], vertices[3]),
             
-            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
-            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
+            //Bottom
+            Triangle(vertices[4], vertices[5], vertices[7]),
+            Triangle(vertices[6], vertices[5], vertices[7]),
             
-            Triangle(Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
-                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
-            Triangle(Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
+            //Side
+            Triangle(vertices[0], vertices[4], vertices[5]),
+            Triangle(vertices[0], vertices[1], vertices[5]),
             
-            Triangle(Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
-            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
-            
-            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
-            Triangle(Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
+            //Other Side
+            Triangle(vertices[2], vertices[3], vertices[7]),
+            Triangle(vertices[2], vertices[6], vertices[7]),
         ]
-            
-        self.polygonMesh = PolygonMesh(triangles: triangles)
         
-//        self.polygonMesh = [
-//            Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-//            Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-//            Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
-//            Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
-//            Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//            Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//            Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-//            Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-//        ]
+        self.polygonMesh = PolygonMesh(triangles: triangles)
     }
 }
 
@@ -224,7 +244,6 @@ struct ContentView: View {
                            with: .color(.green),
                            lineWidth: 3)
         }
-//        .frame(width: 300, height: 200)
         .focusable()
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
