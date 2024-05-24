@@ -32,6 +32,10 @@ struct Point3d {
         self.z = z
     }
     
+    func dimension(index: Int) -> Double {
+        return [x, y, z][min(index, 2)]
+    }
+    
     func distance(_ point: Point3d) -> Double {
         return sqrt( pow(x-point.x, 2) + pow(y-point.y, 2) + pow(z-point.z, 2) )
     }
@@ -194,6 +198,34 @@ struct PolygonMesh {
     }
 }
 
+struct Plane {
+    struct Vector3d {
+        let x: Double
+        let y: Double
+        let z: Double
+        
+        init(x: Double, y: Double, z: Double) {
+
+            //need to add something to make sure it stays on the unit sphere
+            self.x = x
+            self.y = y
+            self.z = z
+        }
+        
+        func dimension(index: Int) -> Double {
+            return [x, y, z][min(index, 2)]
+        }
+    }
+    
+    let normalVector: Vector3d
+    let pointOnPlane: Point3d
+    
+    init(normalVector: Vector3d, pointOnPlane: Point3d) {
+        self.normalVector = normalVector
+        self.pointOnPlane = pointOnPlane
+    }
+}
+
 struct Renderer3d {
     
     struct Camera {
@@ -206,16 +238,25 @@ struct Renderer3d {
         }
     }
     
+    func findIntersectionOfPlaneAndLine(plane: Plane, line: Line<Point3d>) -> Point3d {
+        
+        let f = line.start
+        let p = line.end
+        let b = plane.pointOnPlane
+        let v = plane.normalVector
+        
+        let x: Double = (( f.x * ((p.y - f.y)*v.y + (p.z - f.z)*v.z) / ((p.x - f.x)*v.x) ) - ( ((f.y - b.y)*v.y + (f.z - b.z)*v.z) / v.x ) + b.x ) / (1 + ( ((p.y - f.y)*v.y + (p.z - f.z)*v.z) / ((p.x - f.x)*v.x) ))
+        
+        print("x: \(x)")
+        
+        return Point3d(x: x, y: 0, z: 0)
+    }
+    
     private func calcIntersectionBetween(line: Line<Point3d>, planeY: Double) -> Point2d {
         let pointA = line.end
         let pointB = line.start
         
-        print("pointA: \(pointA)")
-        print("pointB: \(pointB)")
-        print("planeY: \(planeY)")
-        
         let something = (planeY - pointA.y)/(pointB.y - pointA.y)
-        print("something: \(something)")
         
         let intersection = Point2d(
             x: (something*(pointB.x - pointA.x)) + pointA.x,
@@ -223,8 +264,6 @@ struct Renderer3d {
 //            x: (((planeY - pointA.y)*(pointB.x - pointA.x))/(pointB.y - pointA.y)) + pointA.x,
 //            y: (((planeY - pointA.y)*(pointB.z - pointA.z))/(pointB.y - pointA.y)) + pointA.z
         )
-        
-        print("intersection: \(intersection)")
         
         return intersection
     }
@@ -290,13 +329,19 @@ struct ContentView: View {
     
     var body: some View {
     
-        let cubeOrigin = Point3d(x: 200, y: 200, z: 100)
-        let cube = Cube(origin: cubeOrigin, sideLength: 60).polygonMesh
-        let cube2 = Cube(origin: Point3d(x: 200, y: 100, z: 80), sideLength: 60).polygonMesh
         
-        let camera = Renderer3d.Camera(focalPoint: Point3d(x: 0, y: -80, z: 0),
-                                       frameCenter: Point3d(x: 0, y: 0, z: 0))
+        let cubeOrigin = Point3d(x: 70, y: 10, z: 70)
+        let cube = Cube(origin: cubeOrigin, sideLength: 30).polygonMesh
+        let cube2 = Cube(origin: Point3d(x: 20, y: 10, z: 20), sideLength: 30).polygonMesh
+        
+        let camera = Renderer3d.Camera(focalPoint: Point3d(x: -10, y: -100, z: -10),
+                                       frameCenter: Point3d(x: -10, y: 0, z: -10))
         let renderer = Renderer3d()
+        let intersection = renderer.findIntersectionOfPlaneAndLine(
+            plane: Plane(normalVector: Plane.Vector3d(x: 1/3, y: 1/3, z: 1/3), pointOnPlane: Point3d(x: 2, y: 1, z: 0)),
+            line: Line(start: Point3d(x: 0, y: -10, z: 0), end: Point3d(x: 20, y: 5, z: 19))
+        )
+//        print("intersection: ")
         
         Canvas { context, size in
             
