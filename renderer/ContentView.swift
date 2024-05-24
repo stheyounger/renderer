@@ -32,7 +32,7 @@ struct Point3d {
         self.z = z
     }
     
-    func dimension(index: Int) -> Double {
+    func dimension(_ index: Int) -> Double {
         return [x, y, z][min(index, 2)]
     }
     
@@ -212,7 +212,7 @@ struct Plane {
             self.z = z
         }
         
-        func dimension(index: Int) -> Double {
+        func dimension(_ index: Int) -> Double {
             return [x, y, z][min(index, 2)]
         }
     }
@@ -245,11 +245,25 @@ struct Renderer3d {
         let b = plane.pointOnPlane
         let v = plane.normalVector
         
-        let x: Double = (( f.x * ((p.y - f.y)*v.y + (p.z - f.z)*v.z) / ((p.x - f.x)*v.x) ) - ( ((f.y - b.y)*v.y + (f.z - b.z)*v.z) / v.x ) + b.x ) / (1 + ( ((p.y - f.y)*v.y + (p.z - f.z)*v.z) / ((p.x - f.x)*v.x) ))
+        func dimension(i: Int) -> Double {
+            
+            func nextDimensionIndex(i: Int) -> Int {
+                return if (i < 2) {
+                    i + 1
+                } else {
+                    0
+                }
+            }
+            
+            let i2 = nextDimensionIndex(i: i)
+            let i3 = nextDimensionIndex(i: i2)
+            
+            let repeated = ( ((p.dimension(i2) - f.dimension(i2))*v.dimension(i2) + (p.dimension(i3) - f.dimension(i3))*v.dimension(i3)) / ((p.dimension(i) - f.dimension(i))*v.dimension(i)) )
+            
+            return (( f.dimension(i) * repeated ) - ( ((f.dimension(i2) - b.dimension(i2))*v.dimension(i2) + (f.dimension(i3) - b.dimension(i3))*v.dimension(i3)) / v.dimension(i) ) + b.dimension(i) ) / (1 + repeated)
+        }
         
-        print("x: \(x)")
-        
-        return Point3d(x: x, y: 0, z: 0)
+        return Point3d(x: dimension(i: 0), y: dimension(i: 1), z: dimension(i: 2))
     }
     
     private func calcIntersectionBetween(line: Line<Point3d>, planeY: Double) -> Point2d {
@@ -341,9 +355,10 @@ struct ContentView: View {
             plane: Plane(normalVector: Plane.Vector3d(x: 1/3, y: 1/3, z: 1/3), pointOnPlane: Point3d(x: 2, y: 1, z: 0)),
             line: Line(start: Point3d(x: 0, y: -10, z: 0), end: Point3d(x: 20, y: 5, z: 19))
         )
-//        print("intersection: ")
         
         Canvas { context, size in
+            
+            print("intersection: \(intersection))")
             
             let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
             

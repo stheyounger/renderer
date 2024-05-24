@@ -14,57 +14,10 @@
             filePath = "renderer/ContentView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "282"
-            endingLineNumber = "282"
-            landmarkName = "render(camera:shapes:)"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "23225A43-4942-4839-9E29-1288CB53E95F - 9e89fee9528aea2d"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "renderer.Renderer3d.render(camera: renderer.Renderer3d.Camera, shapes: Swift.Array&lt;renderer.PolygonMesh&gt;) -&gt; Swift.Array&lt;renderer.Line&lt;renderer.Point2d&gt;&gt;"
-                  moduleName = "renderer"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jamespenrose/3dRendering/renderer/renderer/ContentView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "282"
-                  endingLineNumber = "282"
-                  offsetFromSymbolStart = "391">
-               </Location>
-               <Location
-                  uuid = "23225A43-4942-4839-9E29-1288CB53E95F - db3da167e08d3fa8"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #3 (Swift.Optional&lt;renderer.Line&lt;renderer.Point2d&gt;&gt;) -&gt; Swift.Bool in renderer.Renderer3d.render(camera: renderer.Renderer3d.Camera, shapes: Swift.Array&lt;renderer.PolygonMesh&gt;) -&gt; Swift.Array&lt;renderer.Line&lt;renderer.Point2d&gt;&gt;"
-                  moduleName = "renderer"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jamespenrose/3dRendering/renderer/renderer/ContentView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "282"
-                  endingLineNumber = "282"
-                  offsetFromSymbolStart = "81">
-               </Location>
-               <Location
-                  uuid = "23225A43-4942-4839-9E29-1288CB53E95F - 78cd400a59b86e63"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #4 (Swift.Optional&lt;renderer.Line&lt;renderer.Point2d&gt;&gt;) -&gt; renderer.Line&lt;renderer.Point2d&gt; in renderer.Renderer3d.render(camera: renderer.Renderer3d.Camera, shapes: Swift.Array&lt;renderer.PolygonMesh&gt;) -&gt; Swift.Array&lt;renderer.Line&lt;renderer.Point2d&gt;&gt;"
-                  moduleName = "renderer"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jamespenrose/3dRendering/renderer/renderer/ContentView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "282"
-                  endingLineNumber = "282"
-                  offsetFromSymbolStart = "101">
-               </Location>
-            </Locations>
+            startingLineNumber = "298"
+            endingLineNumber = "298"
+            landmarkName = "Renderer3d"
+            landmarkType = "14">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
