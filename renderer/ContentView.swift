@@ -15,6 +15,10 @@ struct Point2d {
         self.x = x
         self.y = y
     }
+    
+    func angleRadians(_ point: Point2d) -> Double {
+        return atan2(y - point.y, x - point.x)
+    }
 }
 
 struct Point3d {
@@ -26,6 +30,10 @@ struct Point3d {
         self.x = x
         self.y = y
         self.z = z
+    }
+    
+    func distance(_ point: Point3d) -> Double {
+        return sqrt( pow(x-point.x, 2) + pow(y-point.y, 2) + pow(z-point.z, 2) )
     }
     
     func rotateAroundZ(rotationCenter: Point3d, angleRadians: Double) -> Point3d {
@@ -188,7 +196,51 @@ struct PolygonMesh {
 
 struct Renderer3d {
     
-    func render(shapes: [PolygonMesh]) -> [Line<Point2d>] {
+    struct Camera {
+        let focalPoint: Point3d
+        let frameCenter: Point3d
+        
+        init(focalPoint: Point3d, frameCenter: Point3d) {
+            self.focalPoint = focalPoint
+            self.frameCenter = frameCenter
+        }
+    }
+    
+    private func calcIntersectionBetween(line: Line<Point3d>, planeY: Double) -> Point2d {
+        let pointA = line.end
+        let pointB = line.start
+        
+        print("pointA: \(pointA)")
+        print("pointB: \(pointB)")
+        print("planeY: \(planeY)")
+        
+        let something = (planeY - pointA.y)/(pointB.y - pointA.y)
+        print("something: \(something)")
+        
+        let intersection = Point2d(
+            x: (something*(pointB.x - pointA.x)) + pointA.x,
+            y: (something*(pointB.z - pointA.z)) + pointA.z
+//            x: (((planeY - pointA.y)*(pointB.x - pointA.x))/(pointB.y - pointA.y)) + pointA.x,
+//            y: (((planeY - pointA.y)*(pointB.z - pointA.z))/(pointB.y - pointA.y)) + pointA.z
+        )
+        
+        print("intersection: \(intersection)")
+        
+        return intersection
+    }
+    
+    private func projectPoint(point: Point3d, camera: Camera) -> Point2d {
+        
+        let projectedX = calcIntersectionBetween(line: Line(start: camera.focalPoint, end: point), planeY: camera.frameCenter.y)
+        
+        return projectedX
+        
+//        return Point2d(
+//                x: point.x - camera.frameCenter.x,
+//                y: point.y - camera.frameCenter.y)
+    }
+    
+    func render(camera: Camera, shapes: [PolygonMesh]) -> [Line<Point2d>] {
         
         let wireframe = shapes.flatMap { shape in
             shape.triangles.flatMap { triangle in
@@ -200,13 +252,32 @@ struct Renderer3d {
             }
         }
         
-        let flattened = wireframe.map { line in
-            let start2d = Point2d(x: line.start.x, y: line.start.y)
-            let end2d = Point2d(x: line.end.x, y: line.end.y)
-            return Line(start: start2d, end: end2d)
+        
+        let projected: [Line<Point2d>?] = wireframe.map { line in
+            
+            let theEntireLineIsBehindTheCamera = line.start.z < camera.frameCenter.z && line.end.z < camera.frameCenter.z
+            if (theEntireLineIsBehindTheCamera) {
+                 return nil
+            } else {
+                
+                func coercePointInFrontOfCamera(_ point: Point3d) -> Point3d {
+                    return Point3d(x: point.x, y: point.y, z: max(point.z, camera.frameCenter.z))
+                }
+                
+                let start2d = projectPoint(
+                    point: coercePointInFrontOfCamera(line.start),
+                    camera: camera
+                )
+                let end2d = projectPoint(
+                    point: coercePointInFrontOfCamera(line.end),
+                    camera: camera
+                )
+                
+                return Line(start: start2d, end: end2d)
+            }
         }
         
-        return flattened
+        return projected.filter { line in line != nil }.map { line in line! }
     }
 }
 
@@ -219,19 +290,19 @@ struct ContentView: View {
     
     var body: some View {
     
-        let cubeOrigin = Point3d(x: 100, y: 100, z: 100)
+        let cubeOrigin = Point3d(x: 200, y: 200, z: 100)
         let cube = Cube(origin: cubeOrigin, sideLength: 60).polygonMesh
-        let cube2 = Cube(origin: Point3d(x: 200, y: 100, z: 100), sideLength: 60).polygonMesh
+        let cube2 = Cube(origin: Point3d(x: 200, y: 100, z: 80), sideLength: 60).polygonMesh
         
-        
+        let camera = Renderer3d.Camera(focalPoint: Point3d(x: 0, y: -80, z: 0),
+                                       frameCenter: Point3d(x: 0, y: 0, z: 0))
         let renderer = Renderer3d()
         
         Canvas { context, size in
             
-            
             let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
             
-            let projection = renderer.render(shapes: [rotatedCube, cube2])
+            let projection = renderer.render(camera: camera, shapes: [rotatedCube, cube2])
             
             let path = CGMutablePath()
             for (i, line) in projection.enumerated() {
