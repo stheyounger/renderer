@@ -245,7 +245,7 @@ struct Renderer3d {
         let b = plane.pointOnPlane
         let v = plane.normalVector
         
-        func dimension(i: Int) -> Double {
+        func dimension(dimensionIndex: Int) -> Double {
             
             func nextDimensionIndex(i: Int) -> Int {
                 return if (i < 2) {
@@ -255,6 +255,7 @@ struct Renderer3d {
                 }
             }
             
+            let i = dimensionIndex
             let i2 = nextDimensionIndex(i: i)
             let i3 = nextDimensionIndex(i: i2)
             
@@ -263,7 +264,11 @@ struct Renderer3d {
             return (( f.dimension(i) * repeated ) - ( ((f.dimension(i2) - b.dimension(i2))*v.dimension(i2) + (f.dimension(i3) - b.dimension(i3))*v.dimension(i3)) / v.dimension(i) ) + b.dimension(i) ) / (1 + repeated)
         }
         
-        return Point3d(x: dimension(i: 0), y: dimension(i: 1), z: dimension(i: 2))
+        return Point3d(
+            x: dimension(dimensionIndex: 0),
+            y: dimension(dimensionIndex: 1),
+            z: dimension(dimensionIndex: 2)
+        )
     }
     
     private func calcIntersectionBetween(line: Line<Point3d>, planeY: Double) -> Point2d {
@@ -352,8 +357,8 @@ struct ContentView: View {
                                        frameCenter: Point3d(x: -10, y: 0, z: -10))
         let renderer = Renderer3d()
         let intersection = renderer.findIntersectionOfPlaneAndLine(
-            plane: Plane(normalVector: Plane.Vector3d(x: 1/3, y: 1/3, z: 1/3), pointOnPlane: Point3d(x: 2, y: 1, z: 0)),
-            line: Line(start: Point3d(x: 0, y: -10, z: 0), end: Point3d(x: 20, y: 5, z: 19))
+            plane: Plane(normalVector: Plane.Vector3d(x: 1/3, y: 1.5/3, z: 0.5/3), pointOnPlane: Point3d(x: 0, y: 1, z: 0)),
+            line: Line(start: Point3d(x: -1/3, y: 0.5, z: -1/6), end: Point3d(x: 2, y: 2, z: 2))
         )
         
         Canvas { context, size in
