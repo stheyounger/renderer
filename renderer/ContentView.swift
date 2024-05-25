@@ -32,6 +32,13 @@ struct Point3d {
         self.z = z
     }
     
+    
+    func moveInDirectionForDistance(direction: UnitVector3d, distance: Double) -> Point3d {
+        let origin = self
+        let directionAndDistance = direction.times(scalar: distance)
+        return Point3d(x: origin.x + directionAndDistance.i, y: origin.y + directionAndDistance.j, z: origin.z + directionAndDistance.k)
+    }
+    
     func dimension(_ index: Int) -> Double {
         return [x, y, z][min(index, 2)]
     }
@@ -198,29 +205,28 @@ struct PolygonMesh {
     }
 }
 
-struct Plane {
-    struct Vector3d {
-        let x: Double
-        let y: Double
-        let z: Double
-        
-        init(x: Double, y: Double, z: Double) {
-
-            //need to add something to make sure it stays on the unit sphere
-            self.x = x
-            self.y = y
-            self.z = z
-        }
-        
-        func dimension(_ index: Int) -> Double {
-            return [x, y, z][min(index, 2)]
-        }
+struct UnitVector3d {
+    let i: Double
+    let j: Double
+    let k: Double
+    
+    init(i: Double, j: Double, k: Double) {
+        self.i = i
+        self.j = j
+        self.k = k
     }
     
-    let normalVector: Vector3d
+    func times(scalar: Double) -> UnitVector3d {
+        return UnitVector3d(i: i * scalar, j: j * scalar, k: k * scalar)
+    }
+}
+
+struct Plane {
+    
+    let normalVector: UnitVector3d
     let pointOnPlane: Point3d
     
-    init(normalVector: Vector3d, pointOnPlane: Point3d) {
+    init(normalVector: UnitVector3d, pointOnPlane: Point3d) {
         self.normalVector = normalVector
         self.pointOnPlane = pointOnPlane
     }
@@ -243,7 +249,12 @@ struct Renderer3d {
         let f = line.start
         let p = line.end
         let b = plane.pointOnPlane
-        let v = plane.normalVector
+        let v = Point3d(x: plane.normalVector.i, y: plane.normalVector.j, z: plane.normalVector.k)
+        
+        print("f: \(f)")
+        print("p: \(p)")
+        print("b: \(b)")
+        print("v: \(v)")
         
         func dimension(dimensionIndex: Int) -> Double {
             
@@ -356,13 +367,19 @@ struct ContentView: View {
         let camera = Renderer3d.Camera(focalPoint: Point3d(x: -10, y: -100, z: -10),
                                        frameCenter: Point3d(x: -10, y: 0, z: -10))
         let renderer = Renderer3d()
+        
+        let cameraCenter = Point3d(x: 1/4, y: 1, z: 0)
+        let cameraDirection = UnitVector3d(i: 1/3, j: 1.5/3, k: 0.5/3)
+        let focalLength = 2
+        let focalPoint = cameraCenter.moveInDirectionForDistance(direction: cameraDirection, distance: -Double(focalLength))
         let intersection = renderer.findIntersectionOfPlaneAndLine(
-            plane: Plane(normalVector: Plane.Vector3d(x: 1/3, y: 1.5/3, z: 0.5/3), pointOnPlane: Point3d(x: 0, y: 1, z: 0)),
-            line: Line(start: Point3d(x: -1/3, y: 0.5, z: -1/6), end: Point3d(x: 2, y: 2, z: 2))
+            plane: Plane(normalVector: cameraDirection, pointOnPlane: cameraCenter),
+            line: Line(start: focalPoint, end: Point3d(x: 2, y: 2, z: 2))   
         )
         
-        Canvas { context, size in
+        return Canvas { context, size in
             
+            print("focalPoint: \(focalPoint))")
             print("intersection: \(intersection))")
             
             let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
