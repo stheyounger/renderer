@@ -33,11 +33,11 @@ struct Point3d {
     }
     
     
-    func moveInDirectionForDistance(direction: UnitVector3d, distance: Double) -> Point3d {
-        let origin = self
-        let directionAndDistance = direction.times(scalar: distance)
-        return Point3d(x: origin.x + directionAndDistance.i, y: origin.y + directionAndDistance.j, z: origin.z + directionAndDistance.k)
-    }
+//    func moveInDirectionForDistance(direction: Vector, distance: Double) -> Point3d {
+//        let origin = self
+//        let directionAndDistance = direction.times(distance)
+//        return Point3d(x: origin.x + directionAndDistance.i, y: origin.y + directionAndDistance.j, z: origin.z + directionAndDistance.k)
+//    }
     
     func dimension(_ index: Int) -> Double {
         return [x, y, z][min(index, 2)]
@@ -93,46 +93,6 @@ struct Cube {
 
     init (origin: Point3d, sideLength: Double) {
         let halfLength = sideLength/2
-    
-//        let triangles = [
-//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
-//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
-//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
-//            
-//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
-//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
-//            
-//            Triangle(Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
-//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
-//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength)),
-//            
-//            Triangle(Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
-//                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
-//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength)),
-//            
-//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
-//            Triangle(Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
-//                     Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z-halfLength)),
-//        ]
-        
-        
-//        let dfsa: (String, Int) = ("hi", 2)
         
         let vertices = [
             Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
@@ -205,105 +165,109 @@ struct PolygonMesh {
     }
 }
 
-struct UnitVector3d {
-    let i: Double
-    let j: Double
-    let k: Double
+struct Vector {
+    let dimensions: [Double]
     
-    init(i: Double, j: Double, k: Double) {
-        self.i = i
-        self.j = j
-        self.k = k
+    init(dimensions: [Double]) {
+        self.dimensions = dimensions
+    }
+    init(_ point: Point3d) {
+        dimensions = [point.x, point.y, point.z]
+    }
+
+    func times(_ scalar: Double) -> Vector {
+        return Vector(dimensions: dimensions.map { dimension in
+            dimension * scalar
+        })
     }
     
-    func times(scalar: Double) -> UnitVector3d {
-        return UnitVector3d(i: i * scalar, j: j * scalar, k: k * scalar)
+    func plus(_ other: Vector) -> Vector {
+        return Vector(dimensions: dimensions.enumerated().map { (i, dimension) in
+            let otherDimension = other.dimensions[i]
+            
+            return dimension + otherDimension
+        })
+    }
+    
+    func minus(_ other: Vector) -> Vector {
+        let otherNegated = other.dimensions.map{ dimension in -dimension }
+        return plus(Vector(dimensions: otherNegated))
+    }
+    
+    func magnitude() -> Double {
+        return sqrt(dimensions.reduce(0, { (acc, dimension) in
+            acc + pow(dimension, 2)
+        }))
+    }
+    
+    func normalize() -> Vector {
+        let magnitude = magnitude()
+        return Vector(dimensions: dimensions.map { dimension in
+            dimension / magnitude
+        })
+    }
+    
+    func dot(_ other: Vector) -> Double {
+        return dimensions.enumerated().reduce(0, { (acc, pair) in
+            let i: Int = (pair.0)
+            let dimension = (pair.1)
+            
+            let otherDimension = other.dimensions[i]
+            
+            return acc + (dimension * otherDimension)
+        })
     }
 }
 
+
 struct Plane {
     
-    let normalVector: UnitVector3d
+    let normalVector: Vector
     let pointOnPlane: Point3d
     
-    init(normalVector: UnitVector3d, pointOnPlane: Point3d) {
-        self.normalVector = normalVector
+    init(normalVector: Vector, pointOnPlane: Point3d) {
+        self.normalVector = normalVector.normalize()
         self.pointOnPlane = pointOnPlane
+    }
+    
+    
+    func findIntersectionOfLine(line: Line<Point3d>) -> Point3d {
+        
+        let lineOrigin = Vector(line.start)
+        let lineDirection = (lineOrigin.minus(Vector(line.end))).normalize()
+        
+        let distanceToIntersection = (normalVector.dot(Vector(pointOnPlane)) - normalVector.dot(lineOrigin)) / normalVector.dot(lineDirection)
+        
+        let vectorToIntersection = lineOrigin.plus(lineDirection.times(distanceToIntersection))
+        return Point3d(x: vectorToIntersection.dimensions[0], y: vectorToIntersection.dimensions[1], z: vectorToIntersection.dimensions[2])
     }
 }
 
 struct Renderer3d {
     
     struct Camera {
-        let focalPoint: Point3d
         let frameCenter: Point3d
+        let focalPoint: Point3d
+        let direction: Vector
         
-        init(focalPoint: Point3d, frameCenter: Point3d) {
-            self.focalPoint = focalPoint
+        init(frameCenter: Point3d, direction: Vector, focalLength: Double) {
             self.frameCenter = frameCenter
+            let vectorToFocalPoint = Vector(frameCenter).plus(direction.times(-focalLength))
+            self.focalPoint = Point3d(x: vectorToFocalPoint.dimensions[0], y: vectorToFocalPoint.dimensions[1], z: vectorToFocalPoint.dimensions[2])
+            self.direction = direction
         }
-    }
-    
-    func findIntersectionOfPlaneAndLine(plane: Plane, line: Line<Point3d>) -> Point3d {
-        
-        let f = line.start
-        let p = line.end
-        let b = plane.pointOnPlane
-        let v = Point3d(x: plane.normalVector.i, y: plane.normalVector.j, z: plane.normalVector.k)
-        
-        print("f: \(f)")
-        print("p: \(p)")
-        print("b: \(b)")
-        print("v: \(v)")
-        
-        func dimension(dimensionIndex: Int) -> Double {
-            
-            func nextDimensionIndex(i: Int) -> Int {
-                return if (i < 2) {
-                    i + 1
-                } else {
-                    0
-                }
-            }
-            
-            let i = dimensionIndex
-            let i2 = nextDimensionIndex(i: i)
-            let i3 = nextDimensionIndex(i: i2)
-            
-            let repeated = ( ((p.dimension(i2) - f.dimension(i2))*v.dimension(i2) + (p.dimension(i3) - f.dimension(i3))*v.dimension(i3)) / ((p.dimension(i) - f.dimension(i))*v.dimension(i)) )
-            
-            return (( f.dimension(i) * repeated ) - ( ((f.dimension(i2) - b.dimension(i2))*v.dimension(i2) + (f.dimension(i3) - b.dimension(i3))*v.dimension(i3)) / v.dimension(i) ) + b.dimension(i) ) / (1 + repeated)
-        }
-        
-        return Point3d(
-            x: dimension(dimensionIndex: 0),
-            y: dimension(dimensionIndex: 1),
-            z: dimension(dimensionIndex: 2)
-        )
-    }
-    
-    private func calcIntersectionBetween(line: Line<Point3d>, planeY: Double) -> Point2d {
-        let pointA = line.end
-        let pointB = line.start
-        
-        let something = (planeY - pointA.y)/(pointB.y - pointA.y)
-        
-        let intersection = Point2d(
-            x: (something*(pointB.x - pointA.x)) + pointA.x,
-            y: (something*(pointB.z - pointA.z)) + pointA.z
-//            x: (((planeY - pointA.y)*(pointB.x - pointA.x))/(pointB.y - pointA.y)) + pointA.x,
-//            y: (((planeY - pointA.y)*(pointB.z - pointA.z))/(pointB.y - pointA.y)) + pointA.z
-        )
-        
-        return intersection
     }
     
     private func projectPoint(point: Point3d, camera: Camera) -> Point2d {
         
-        let projectedX = calcIntersectionBetween(line: Line(start: camera.focalPoint, end: point), planeY: camera.frameCenter.y)
+        let cameraPlane = Plane(normalVector: camera.direction, pointOnPlane: camera.frameCenter)
         
-        return projectedX
+        let intersectionPoint = cameraPlane.findIntersectionOfLine(line: Line(start: camera.focalPoint, end: point))
         
+        return Point2d(
+            x: intersectionPoint.x,
+            y: intersectionPoint.y
+        )
 //        return Point2d(
 //                x: point.x - camera.frameCenter.x,
 //                y: point.y - camera.frameCenter.y)
@@ -324,26 +288,42 @@ struct Renderer3d {
         
         let projected: [Line<Point2d>?] = wireframe.map { line in
             
-            let theEntireLineIsBehindTheCamera = line.start.z < camera.frameCenter.z && line.end.z < camera.frameCenter.z
-            if (theEntireLineIsBehindTheCamera) {
-                 return nil
-            } else {
-                
-                func coercePointInFrontOfCamera(_ point: Point3d) -> Point3d {
-                    return Point3d(x: point.x, y: point.y, z: max(point.z, camera.frameCenter.z))
-                }
-                
-                let start2d = projectPoint(
-                    point: coercePointInFrontOfCamera(line.start),
-                    camera: camera
-                )
-                let end2d = projectPoint(
-                    point: coercePointInFrontOfCamera(line.end),
-                    camera: camera
-                )
-                
-                return Line(start: start2d, end: end2d)
-            }
+            let start2d = projectPoint(
+                point: line.start,
+                camera: camera
+            )
+            let end2d = projectPoint(
+                point: line.end,
+                camera: camera
+            )
+            
+            let projectedLine = Line(start: start2d, end: end2d)
+            
+            print("line: \(line)")
+            print("projectedLine: \(projectedLine)")
+            
+            return projectedLine
+            
+//            let theEntireLineIsBehindTheCamera = line.start.z < camera.frameCenter.z && line.end.z < camera.frameCenter.z
+//            if (theEntireLineIsBehindTheCamera) {
+//                 return nil
+//            } else {
+//                
+//                func coercePointInFrontOfCamera(_ point: Point3d) -> Point3d {
+//                    return Point3d(x: point.x, y: point.y, z: max(point.z, camera.frameCenter.z))
+//                }
+//                
+//                let start2d = projectPoint(
+//                    point: coercePointInFrontOfCamera(line.start),
+//                    camera: camera
+//                )
+//                let end2d = projectPoint(
+//                    point: coercePointInFrontOfCamera(line.end),
+//                    camera: camera
+//                )
+//                
+//                return Line(start: start2d, end: end2d)
+//            }
         }
         
         return projected.filter { line in line != nil }.map { line in line! }
@@ -358,29 +338,29 @@ struct ContentView: View {
     private let angleChangeRadians = Double.pi/20
     
     var body: some View {
-    
         
         let cubeOrigin = Point3d(x: 70, y: 10, z: 70)
         let cube = Cube(origin: cubeOrigin, sideLength: 30).polygonMesh
         let cube2 = Cube(origin: Point3d(x: 20, y: 10, z: 20), sideLength: 30).polygonMesh
         
-        let camera = Renderer3d.Camera(focalPoint: Point3d(x: -10, y: -100, z: -10),
-                                       frameCenter: Point3d(x: -10, y: 0, z: -10))
+        let camera = Renderer3d.Camera(frameCenter: Point3d(x: 0, y: 0, z: 0), direction: Vector(dimensions: [0,0,1]), focalLength: 100)
+//            focalPoint: Point3d(x: -10, y: -100, z: -10),
+//                                       frameCenter: Point3d   )
         let renderer = Renderer3d()
         
-        let cameraCenter = Point3d(x: 1/4, y: 1, z: 0)
-        let cameraDirection = UnitVector3d(i: 1/3, j: 1.5/3, k: 0.5/3)
-        let focalLength = 2
-        let focalPoint = cameraCenter.moveInDirectionForDistance(direction: cameraDirection, distance: -Double(focalLength))
-        let intersection = renderer.findIntersectionOfPlaneAndLine(
-            plane: Plane(normalVector: cameraDirection, pointOnPlane: cameraCenter),
-            line: Line(start: focalPoint, end: Point3d(x: 2, y: 2, z: 2))   
-        )
+//        let cameraCenter = Point3d(x: 1/4, y: 1, z: 0)
+//        let cameraDirection = UnitVector3d(i: 1/3, j: 1.5/3, k: 0.5/3)
+//        let focalLength = 2
+//        let focalPoint = cameraCenter.moveInDirectionForDistance(direction: cameraDirection, distance: -Double(focalLength))
+//        let intersection = renderer.findIntersectionOfPlaneAndLine(
+//            plane: Plane(normalVector: cameraDirection, pointOnPlane: cameraCenter),
+//            line: Line(start: focalPoint, end: Point3d(x: 2, y: 2, z: 2))   
+//        )
         
         return Canvas { context, size in
             
-            print("focalPoint: \(focalPoint))")
-            print("intersection: \(intersection))")
+//            print("focalPoint: \(focalPoint))")
+//            print("intersection: \(intersection))")
             
             let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
             
