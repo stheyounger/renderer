@@ -275,14 +275,15 @@ struct Renderer3d {
             frameWidth: Double,
             frameHeight: Double
         ) {
+            let normalizedDirection = direction.normalize()
             self.frameCenter = frameCenter
-            let vectorToFocalPoint = Vector3d(frameCenter).plus(direction.times(-focalLength))
+            let vectorToFocalPoint = Vector3d(frameCenter).plus(normalizedDirection.times(-focalLength))
             self.focalPoint = Point3d(
                 x: vectorToFocalPoint.dimensions[0],
                 y: vectorToFocalPoint.dimensions[1],
                 z: vectorToFocalPoint.dimensions[2]
             )
-            self.direction = direction.normalize()
+            self.direction = normalizedDirection
             
             self.frameWidth = frameWidth
             self.frameHeight = frameHeight
@@ -380,6 +381,7 @@ struct Renderer3d {
                         y: camera.frameHeight/2 * slope
                     )
                 }
+                return projectedLine
                 
                 if (pointIsOutsideFrame(projectedLine.end, camera)) {
                     return Line(start: projectedLine.start, end: getPointInsideFrame(projectedLine.start, projectedLine.end, camera))
@@ -401,7 +403,7 @@ struct Renderer3d {
 struct ContentView: View {
     
     @State private var yAngleRadians = 0.0
-    @State private var xAngleRadians = 0.0
+    @State private var xAngleRadians = Double.pi/2
     private let angleChangeRadians = Double.pi/20
     
     @State private var xPosition = 0.0
@@ -438,8 +440,12 @@ struct ContentView: View {
             
             let camera = Renderer3d.Camera(
                 frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
-                direction: Vector3d(dimensions: [0,0,1]),
-                focalLength: 0.707106,
+                direction: Vector3d(dimensions:
+                                        [sin(yAngleRadians),
+                                         cos(xAngleRadians) * cos(yAngleRadians),
+                                         sin(xAngleRadians) * cos(yAngleRadians)
+                                        ]),
+                focalLength: 0.8,
                 frameWidth: 1,
                 frameHeight: 1
             )
