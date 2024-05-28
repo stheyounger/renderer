@@ -278,6 +278,14 @@ struct Renderer3d {
             )
             self.direction = direction.normalize()
         }
+        
+        init(frameCenter: Point3d, direction: Vector3d, fovDegrees: Double) {
+            let fovRadians = fovDegrees * .pi / 180
+            
+            let focalLength = cos(fovRadians/2)
+            
+            self.init(frameCenter: frameCenter, direction: direction, focalLength: focalLength)
+        }
     }
     
     private func flatten(point: Point3d, camera: Camera) -> Point2d {
@@ -366,7 +374,7 @@ struct Renderer3d {
 struct ContentView: View {
     
     @State private var yAngleRadians = 0.0
-    @State private var xAngleRadians = 0.0
+    @State private var xAngleRadians = 0.000000000001
     private let angleChangeRadians = Double.pi/20
     
     @State private var xPosition = 0.0
@@ -387,13 +395,16 @@ struct ContentView: View {
             
             let camera = Renderer3d.Camera(
                 frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
-                direction: Vector3d(dimensions: [0,0,1]),
-                focalLength: 100
+                direction: 
+                    Vector3d(dimensions:
+                                    [sin(yAngleRadians),
+                                     cos(xAngleRadians) * cos(yAngleRadians),
+                                     sin(xAngleRadians) * cos(yAngleRadians)
+                                    ]),
+                fovDegrees: 90
             )
             
-            let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
-            
-            let rendering = renderer.render(camera: camera, shapes: [rotatedCube, cube2])
+            let rendering = renderer.render(camera: camera, shapes: [cube, cube2])
             
             let centered: [Line<Point2d>] = rendering.map{ line in
                 func centerPoint(_ point: Point2d) -> Point2d {
@@ -449,10 +460,10 @@ struct ContentView: View {
         .onKeyPress { press in
             switch (press.key) {
             case KeyEquivalent.leftArrow:
-                yAngleRadians += angleChangeRadians
+                yAngleRadians -= angleChangeRadians
                 break
             case KeyEquivalent.rightArrow:
-                yAngleRadians -= angleChangeRadians
+                yAngleRadians += angleChangeRadians
                 break
             case KeyEquivalent.upArrow:
                 xAngleRadians += angleChangeRadians
