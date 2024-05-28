@@ -165,7 +165,7 @@ struct PolygonMesh {
     }
 }
 
-struct Vector {
+struct Vector3d {
     let dimensions: [Double]
     
     init(dimensions: [Double]) {
@@ -175,23 +175,23 @@ struct Vector {
         dimensions = [point.x, point.y, point.z]
     }
     
-    func times(_ scalar: Double) -> Vector {
-        return Vector(dimensions: dimensions.map { dimension in
+    func times(_ scalar: Double) -> Vector3d {
+        return Vector3d(dimensions: dimensions.map { dimension in
             dimension * scalar
         })
     }
     
-    func plus(_ other: Vector) -> Vector {
-        return Vector(dimensions: dimensions.enumerated().map { (i, dimension) in
+    func plus(_ other: Vector3d) -> Vector3d {
+        return Vector3d(dimensions: dimensions.enumerated().map { (i, dimension) in
             let otherDimension = other.dimensions[i]
             
             return dimension + otherDimension
         })
     }
     
-    func minus(_ other: Vector) -> Vector {
+    func minus(_ other: Vector3d) -> Vector3d {
         let otherNegated = other.dimensions.map{ dimension in -dimension }
-        return plus(Vector(dimensions: otherNegated))
+        return plus(Vector3d(dimensions: otherNegated))
     }
     
     func magnitude() -> Double {
@@ -200,14 +200,14 @@ struct Vector {
         }))
     }
     
-    func normalize() -> Vector {
+    func normalize() -> Vector3d {
         let magnitude = magnitude()
-        return Vector(dimensions: dimensions.map { dimension in
+        return Vector3d(dimensions: dimensions.map { dimension in
             dimension / magnitude
         })
     }
     
-    func dot(_ other: Vector) -> Double {
+    func dot(_ other: Vector3d) -> Double {
         return dimensions.enumerated().reduce(0, { (acc, pair) in
             let i: Int = (pair.0)
             let dimension = (pair.1)
@@ -218,33 +218,40 @@ struct Vector {
         })
     }
     
-    func cross(_ other: Vector) -> Vector {
-        func nextDimension(i: Int) -> Int {
-            if (i < dimensions.count-1) {
-                i + 1
-            } else {
-                0
-            }
-        }
-        
+    func cross(_ other: Vector3d) -> Vector3d {
+//        func nextDimension(i: Int) -> Int {
+//            if (i < dimensions.count-1) {
+//                i + 1
+//            } else {
+//                0
+//            }
+//        }
+//        
         let otherDimensions = other.dimensions
-        
-        return Vector(dimensions: (0...(dimensions.count-1)).map { i in
-            let i2 = nextDimension(i: i)
-            let i3 = nextDimension(i: i2)
+//        
+//        return Vector3d(dimensions: (0...(dimensions.count-1)).map { i in
+//            let i2 = nextDimension(i: i)
+//            let i3 = nextDimension(i: i2)
+//            
+//            let vector1 = Vector3d(dimensions: [dimensions[i2], otherDimensions[i2]])
+//            let vector2 = Vector3d(dimensions: [dimensions[i3], otherDimensions[i3]])
+//            
+//            let dot = vector1.dot(vector2)
+//            print("i: \(i), dot: \(dot), a: \(vector1), b: \(vector2)")
+//            return dot
+//        })
+        return Vector3d(dimensions: [
+            (dimensions[1] * otherDimensions[2]) - (dimensions[2] * otherDimensions[1]),
             
-            let vector1 = Vector(dimensions: [dimensions[i2], otherDimensions[i2]])
-            let vector2 = Vector(dimensions: [dimensions[i3], otherDimensions[i3]])
+            (dimensions[2] * otherDimensions[0]) - (dimensions[0] * otherDimensions[2]),
             
-            let dot = vector1.dot(vector2)
-            print("i: \(i), dot: \(dot), a: \(vector1), b: \(vector2)")
-            return dot
-        })
+            (dimensions[0] * otherDimensions[1]) - (dimensions[1] * otherDimensions[0]),
+        ])
     }
     
-    func translated(matrixColumns: [[Double]]) -> Vector {
-        return Vector(dimensions: matrixColumns.map { column in
-            Vector(dimensions: column).dot(self)
+    func translated(matrixColumns: [[Double]]) -> Vector3d {
+        return Vector3d(dimensions: matrixColumns.map { column in
+            Vector3d(dimensions: column).dot(self)
         })
     }
 }
@@ -252,20 +259,20 @@ struct Vector {
 
 struct Plane {
     
-    let normalVector: Vector
+    let normalVector: Vector3d
     let pointOnPlane: Point3d
     
-    init(normalVector: Vector, pointOnPlane: Point3d) {
+    init(normalVector: Vector3d, pointOnPlane: Point3d) {
         self.normalVector = normalVector.normalize()
         self.pointOnPlane = pointOnPlane
     }
 
     func findIntersectionOfLine(line: Line<Point3d>) -> Point3d {
         
-        let lineOrigin = Vector(line.start)
-        let lineDirection = (lineOrigin.minus(Vector(line.end))).normalize()
+        let lineOrigin = Vector3d(line.start)
+        let lineDirection = (lineOrigin.minus(Vector3d(line.end))).normalize()
         
-        let distanceToIntersection = (normalVector.dot(Vector(pointOnPlane)) - normalVector.dot(lineOrigin)) / normalVector.dot(lineDirection)
+        let distanceToIntersection = (normalVector.dot(Vector3d(pointOnPlane)) - normalVector.dot(lineOrigin)) / normalVector.dot(lineDirection)
         
         let vectorToIntersection = lineOrigin.plus(lineDirection.times(distanceToIntersection))
         return Point3d(x: vectorToIntersection.dimensions[0], y: vectorToIntersection.dimensions[1], z: vectorToIntersection.dimensions[2])
@@ -277,11 +284,11 @@ struct Renderer3d {
     struct Camera {
         let frameCenter: Point3d
         let focalPoint: Point3d
-        let direction: Vector
+        let direction: Vector3d
         
-        init(frameCenter: Point3d, direction: Vector, focalLength: Double) {
+        init(frameCenter: Point3d, direction: Vector3d, focalLength: Double) {
             self.frameCenter = frameCenter
-            let vectorToFocalPoint = Vector(frameCenter).plus(direction.times(-focalLength))
+            let vectorToFocalPoint = Vector3d(frameCenter).plus(direction.times(-focalLength))
             self.focalPoint = Point3d(x: vectorToFocalPoint.dimensions[0], y: vectorToFocalPoint.dimensions[1], z: vectorToFocalPoint.dimensions[2])
             self.direction = direction
         }
@@ -289,10 +296,10 @@ struct Renderer3d {
     
     private func flatten(point: Point3d, camera: Camera) -> Point2d {
         let i = camera.direction
-        let j = i.cross(Vector(dimensions: [0, 1, 0])).normalize()
+        let j = i.cross(Vector3d(dimensions: [0, 1, 0])).normalize()
         let k = j.cross(i).normalize()
         
-        let vectorPoint = Vector(point)
+        let vectorPoint = Vector3d(point)
         
         let flattenedPoint = vectorPoint.translated(matrixColumns: [j.dimensions, k.dimensions, i.dimensions])
         
@@ -392,13 +399,13 @@ struct ContentView: View {
         
         return Canvas { context, size in
             
-            let vector1 = Vector(dimensions: [1, 2, 0])
-            let vector2 = Vector(dimensions: [4, 4, 4])
+            let vector1 = Vector3d(dimensions: [1, 2, 0])
+            let vector2 = Vector3d(dimensions: [4, 4, 4])
             
             let cross = vector1.cross(vector2)
             print("cross: \(cross)")
             
-            let camera = Renderer3d.Camera(frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition), direction: Vector(dimensions: [0,0,1]), focalLength: 50)
+            let camera = Renderer3d.Camera(frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition), direction: Vector3d(dimensions: [0,0,1]), focalLength: 50)
             
             let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
             
