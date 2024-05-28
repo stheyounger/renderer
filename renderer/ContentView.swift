@@ -174,7 +174,7 @@ struct Vector {
     init(_ point: Point3d) {
         dimensions = [point.x, point.y, point.z]
     }
-
+    
     func times(_ scalar: Double) -> Vector {
         return Vector(dimensions: dimensions.map { dimension in
             dimension * scalar
@@ -217,6 +217,36 @@ struct Vector {
             return acc + (dimension * otherDimension)
         })
     }
+    
+    func cross(_ other: Vector) -> Vector {
+        func nextDimension(i: Int) -> Int {
+            if (i < dimensions.count-1) {
+                i + 1
+            } else {
+                0
+            }
+        }
+        
+        let otherDimensions = other.dimensions
+        
+        return Vector(dimensions: (0...(dimensions.count-1)).map { i in
+            let i2 = nextDimension(i: i)
+            let i3 = nextDimension(i: i2)
+            
+            let vector1 = Vector(dimensions: [dimensions[i2], otherDimensions[i2]])
+            let vector2 = Vector(dimensions: [dimensions[i3], otherDimensions[i3]])
+            
+            let dot = vector1.dot(vector2)
+            print("i: \(i), dot: \(dot), a: \(vector1), b: \(vector2)")
+            return dot
+        })
+    }
+    
+    func translated(matrixColumns: [[Double]]) -> Vector {
+        return Vector(dimensions: matrixColumns.map { column in
+            Vector(dimensions: column).dot(self)
+        })
+    }
 }
 
 
@@ -229,8 +259,7 @@ struct Plane {
         self.normalVector = normalVector.normalize()
         self.pointOnPlane = pointOnPlane
     }
-    
-    
+
     func findIntersectionOfLine(line: Line<Point3d>) -> Point3d {
         
         let lineOrigin = Vector(line.start)
@@ -258,19 +287,29 @@ struct Renderer3d {
         }
     }
     
+    private func flatten(point: Point3d, camera: Camera) -> Point2d {
+        let i = camera.direction
+        let j = i.cross(Vector(dimensions: [0, 1, 0])).normalize()
+        let k = j.cross(i).normalize()
+        
+        let vectorPoint = Vector(point)
+        
+        let flattenedPoint = vectorPoint.translated(matrixColumns: [j.dimensions, k.dimensions, i.dimensions])
+        
+        return Point2d(
+            x: flattenedPoint.dimensions[0],
+            y: flattenedPoint.dimensions[1]
+        )
+    }
+    
     private func projectPoint(point: Point3d, camera: Camera) -> Point2d {
         
         let cameraPlane = Plane(normalVector: camera.direction, pointOnPlane: camera.frameCenter)
         
         let intersectionPoint = cameraPlane.findIntersectionOfLine(line: Line(start: camera.focalPoint, end: point))
         
-        return Point2d(
-            x: intersectionPoint.x,
-            y: intersectionPoint.y
-        )
-//        return Point2d(
-//                x: point.x - camera.frameCenter.x,
-//                y: point.y - camera.frameCenter.y)
+        
+        return flatten(point: intersectionPoint, camera: camera)
     }
     
     func render(camera: Camera, shapes: [PolygonMesh]) -> [Line<Point2d>] {
@@ -337,30 +376,29 @@ struct ContentView: View {
     @State private var xAngleRadians = 0.0
     private let angleChangeRadians = Double.pi/20
     
+    @State private var xPosition = 0.0
+    @State private var yPosition = 0.0
+    @State private var zPosition = 0.0
+    private let movementAmount = 5.0
+    
     var body: some View {
         
         let cubeOrigin = Point3d(x: 70, y: 10, z: 70)
         let cube = Cube(origin: cubeOrigin, sideLength: 30).polygonMesh
         let cube2 = Cube(origin: Point3d(x: 20, y: 10, z: 20), sideLength: 30).polygonMesh
         
-        let camera = Renderer3d.Camera(frameCenter: Point3d(x: 0, y: 0, z: 0), direction: Vector(dimensions: [0,0,1]), focalLength: 100)
-//            focalPoint: Point3d(x: -10, y: -100, z: -10),
-//                                       frameCenter: Point3d   )
         let renderer = Renderer3d()
         
-//        let cameraCenter = Point3d(x: 1/4, y: 1, z: 0)
-//        let cameraDirection = UnitVector3d(i: 1/3, j: 1.5/3, k: 0.5/3)
-//        let focalLength = 2
-//        let focalPoint = cameraCenter.moveInDirectionForDistance(direction: cameraDirection, distance: -Double(focalLength))
-//        let intersection = renderer.findIntersectionOfPlaneAndLine(
-//            plane: Plane(normalVector: cameraDirection, pointOnPlane: cameraCenter),
-//            line: Line(start: focalPoint, end: Point3d(x: 2, y: 2, z: 2))   
-//        )
         
         return Canvas { context, size in
             
-//            print("focalPoint: \(focalPoint))")
-//            print("intersection: \(intersection))")
+            let vector1 = Vector(dimensions: [1, 2, 0])
+            let vector2 = Vector(dimensions: [4, 4, 4])
+            
+            let cross = vector1.cross(vector2)
+            print("cross: \(cross)")
+            
+            let camera = Renderer3d.Camera(frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition), direction: Vector(dimensions: [0,0,1]), focalLength: 50)
             
             let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
             
@@ -403,20 +441,46 @@ struct ContentView: View {
         )
         .onKeyPress { press in
             switch (press.key) {
-                case KeyEquivalent.leftArrow:
-                    yAngleRadians += angleChangeRadians
+            case KeyEquivalent.leftArrow:
+                yAngleRadians += angleChangeRadians
+                break
+            case KeyEquivalent.rightArrow:
+                yAngleRadians -= angleChangeRadians
+                break
+            case KeyEquivalent.upArrow:
+                xAngleRadians += angleChangeRadians
+                break
+            case KeyEquivalent.downArrow:
+                xAngleRadians -= angleChangeRadians
+                break
+            case KeyEquivalent.space:
+                yPosition += movementAmount
+                break
+            default:
+                switch (press.characters) {
+                case "w":
+                    zPosition += movementAmount
                     break
-                case KeyEquivalent.rightArrow:
-                    yAngleRadians -= angleChangeRadians
+                case "s":
+                    zPosition -= movementAmount
                     break
-                case KeyEquivalent.upArrow:
-                    xAngleRadians += angleChangeRadians
+                case "a":
+                    xPosition -= movementAmount
                     break
-                case KeyEquivalent.downArrow:
-                    xAngleRadians -= angleChangeRadians
+                case "d":
+                    xPosition += movementAmount
                     break
                 default:
+                    switch(press.modifiers) {
+                    case EventModifiers.shift:
+                            yPosition -= movementAmount
+                            break
+                    default:
+                        break
+                    }
                     break
+                }
+                break
             }
             return .handled
         }
