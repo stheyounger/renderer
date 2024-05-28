@@ -267,8 +267,16 @@ struct Renderer3d {
         let frameCenter: Point3d
         let focalPoint: Point3d
         let direction: Vector3d
+        let frameWidth: Double
+        let frameHeight: Double
         
-        init(frameCenter: Point3d, direction: Vector3d, focalLength: Double) {
+        init(
+            frameCenter: Point3d,
+            direction: Vector3d,
+            focalLength: Double,
+            frameWidth: Double,
+            frameHeight: Double
+        ) {
             self.frameCenter = frameCenter
             let vectorToFocalPoint = Vector3d(frameCenter).plus(direction.times(-focalLength))
             self.focalPoint = Point3d(
@@ -277,6 +285,9 @@ struct Renderer3d {
                 z: vectorToFocalPoint.dimensions[2]
             )
             self.direction = direction.normalize()
+            
+            self.frameWidth = frameWidth
+            self.frameHeight = frameHeight
         }
     }
     
@@ -295,14 +306,27 @@ struct Renderer3d {
         )
     }
     
+    private func constrainInFrame(point: Point2d, camera: Camera) -> Point2d {
+        let x = point.x
+        let y = point.y
+        
+        let inFrame = Point2d(
+            x: min(abs(x), camera.frameWidth/2) * x.significand,
+            y: min(abs(y), camera.frameHeight/2) * y.significand
+        )
+        print("inFrame: \(inFrame)")
+        return inFrame
+    }
+    
     private func projectPoint(point: Point3d, camera: Camera) -> Point2d {
         
         let cameraPlane = Plane(normalVector: camera.direction, pointOnPlane: camera.frameCenter)
         
         let intersectionPoint = cameraPlane.findIntersectionOfLine(line: Line(start: camera.focalPoint, end: point))
         
+        let flattened = flatten(point: intersectionPoint, camera: camera)
         
-        return flatten(point: intersectionPoint, camera: camera)
+        return constrainInFrame(point: flattened, camera: camera)
     }
     
     func render(camera: Camera, shapes: [PolygonMesh]) -> [Line<Point2d>] {
@@ -376,26 +400,30 @@ struct ContentView: View {
     
     var body: some View {
         
-        let cubeOrigin = Point3d(x: 70, y: 10, z: 70)
-        let cube = Cube(origin: cubeOrigin, sideLength: 30).polygonMesh
-        let cube2 = Cube(origin: Point3d(x: 20, y: 10, z: 20), sideLength: 30).polygonMesh
+        let cubeOrigin = Point3d(x: 0, y: 0, z: 1.5)
+        let cube = Cube(origin: cubeOrigin, sideLength: 1).polygonMesh
+        let cube2 = Cube(origin: Point3d(x: 5, y: 0, z: 2), sideLength: 1).polygonMesh
         
         let renderer = Renderer3d()
-        
         
         return Canvas { context, size in
             
             let camera = Renderer3d.Camera(
                 frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
                 direction: Vector3d(dimensions: [0,0,1]),
-                focalLength: 100
+                focalLength: 0.707106,
+                frameWidth: 1,
+                frameHeight: 1
             )
+            print("camera center: \(camera.frameCenter)")
+            print("camera focal point: \(camera.focalPoint)")
             
-            let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
+            let rotatedCube = cube
             
             let rendering = renderer.render(camera: camera, shapes: [rotatedCube, cube2])
             
             let centered: [Line<Point2d>] = rendering.map{ line in
+                
                 func centerPoint(_ point: Point2d) -> Point2d {
                     let centerX = size.width/2
                     let centerY = size.height/2
@@ -408,7 +436,24 @@ struct ContentView: View {
                     )
                 }
                 
-                return Line(start: centerPoint(line.start), end: centerPoint(line.end))
+                let smallSideOfWindow = min(size.width, size.height)
+                let smallSideOfCamera = min(camera.frameWidth, camera.frameHeight)
+                
+                let cameraToWindowConversion = smallSideOfWindow/smallSideOfCamera
+                
+                print("cameraToWindowConversion: \(cameraToWindowConversion)")
+                func stretched(_ point: Point2d) -> Point2d {
+                    return Point2d(x: point.x * cameraToWindowConversion, y: point.y * cameraToWindowConversion)
+                }
+                
+                func adjustToWindow(_ point: Point2d) -> Point2d {
+                    return stretched(centerPoint(point))
+                }
+                
+                return Line(
+                    start: adjustToWindow(line.start),
+                    end: adjustToWindow(line.end)
+                )
             }
             
             let path = CGMutablePath()
