@@ -249,15 +249,20 @@ struct Plane {
         self.pointOnPlane = pointOnPlane
     }
 
-    func findIntersectionOfLine(line: Line<Point3d>) -> Point3d {
-        
+    func findIntersectionOfLine(line: Line<Point3d>) -> Point3d? {
         let lineOrigin = Vector3d(line.start)
         let lineDirection = (lineOrigin.minus(Vector3d(line.end))).normalize()
         
         let distanceToIntersection = (normalVector.dot(Vector3d(pointOnPlane)) - normalVector.dot(lineOrigin)) / normalVector.dot(lineDirection)
         
-        let vectorToIntersection = lineOrigin.plus(lineDirection.times(distanceToIntersection))
-        return Point3d(x: vectorToIntersection.dimensions[0], y: vectorToIntersection.dimensions[1], z: vectorToIntersection.dimensions[2])
+        let lineLength = line.start.distance(line.end)
+        if (abs(distanceToIntersection) > abs(lineLength)) {
+            return nil
+        } else {
+            let vectorToIntersection = lineOrigin.plus(lineDirection.times(distanceToIntersection))
+            
+            return Point3d(x: vectorToIntersection.dimensions[0], y: vectorToIntersection.dimensions[1], z: vectorToIntersection.dimensions[2])
+        }
     }
 }
 
@@ -310,23 +315,31 @@ struct Renderer3d {
         let x = point.x
         let y = point.y
         
+        func sign(_ n: Double) -> Double {
+            return (n < 0 ? -1 : 1)
+        }
+        
         let inFrame = Point2d(
-            x: min(abs(x), camera.frameWidth/2) * x.significand,
-            y: min(abs(y), camera.frameHeight/2) * y.significand
+            x: min(abs(x), camera.frameWidth/2) * sign(x),
+            y: min(abs(y), camera.frameHeight/2) * sign(y)
         )
         print("inFrame: \(inFrame)")
         return inFrame
     }
     
-    private func projectPoint(point: Point3d, camera: Camera) -> Point2d {
+    private func projectPoint(point: Point3d, camera: Camera) -> Point2d? {
         
         let cameraPlane = Plane(normalVector: camera.direction, pointOnPlane: camera.frameCenter)
         
         let intersectionPoint = cameraPlane.findIntersectionOfLine(line: Line(start: camera.focalPoint, end: point))
         
-        let flattened = flatten(point: intersectionPoint, camera: camera)
-        
-        return constrainInFrame(point: flattened, camera: camera)
+        if (intersectionPoint != nil) {
+            let flattened = flatten(point: intersectionPoint!, camera: camera)
+            
+            return constrainInFrame(point: flattened, camera: camera)
+        } else {
+            return nil
+        }
     }
     
     func render(camera: Camera, shapes: [PolygonMesh]) -> [Line<Point2d>] {
@@ -343,7 +356,6 @@ struct Renderer3d {
         
         
         let projected: [Line<Point2d>?] = wireframe.map { line in
-            
             let start2d = projectPoint(
                 point: line.start,
                 camera: camera
@@ -353,33 +365,12 @@ struct Renderer3d {
                 camera: camera
             )
             
-            let projectedLine = Line(start: start2d, end: end2d)
-            
-            print("line: \(line)")
-            print("projectedLine: \(projectedLine)")
-            
-            return projectedLine
-            
-//            let theEntireLineIsBehindTheCamera = line.start.z < camera.frameCenter.z && line.end.z < camera.frameCenter.z
-//            if (theEntireLineIsBehindTheCamera) {
-//                 return nil
-//            } else {
-//                
-//                func coercePointInFrontOfCamera(_ point: Point3d) -> Point3d {
-//                    return Point3d(x: point.x, y: point.y, z: max(point.z, camera.frameCenter.z))
-//                }
-//                
-//                let start2d = projectPoint(
-//                    point: coercePointInFrontOfCamera(line.start),
-//                    camera: camera
-//                )
-//                let end2d = projectPoint(
-//                    point: coercePointInFrontOfCamera(line.end),
-//                    camera: camera
-//                )
-//                
-//                return Line(start: start2d, end: end2d)
-//            }
+            if (start2d != nil && end2d != nil) {
+                let projectedLine = Line(start: start2d!, end: end2d!)
+                return projectedLine
+            } else {
+                return nil
+            }
         }
         
         return projected.filter { line in line != nil }.map { line in line! }
@@ -396,13 +387,30 @@ struct ContentView: View {
     @State private var xPosition = 0.0
     @State private var yPosition = 0.0
     @State private var zPosition = 0.0
-    private let movementAmount = 5.0
+    private let movementAmount = 0.1
     
     var body: some View {
         
         let cubeOrigin = Point3d(x: 0, y: 0, z: 1.5)
         let cube = Cube(origin: cubeOrigin, sideLength: 1).polygonMesh
         let cube2 = Cube(origin: Point3d(x: 5, y: 0, z: 2), sideLength: 1).polygonMesh
+        let origin = PolygonMesh(triangles: [
+            Triangle(orderedVertices: [
+                Point3d(x: 0, y: 0, z: 0),
+                Point3d(x: 1, y: 0, z: 0),
+                Point3d(x: 0, y: 0, z: 1),
+            ]),
+            Triangle(orderedVertices: [
+                Point3d(x: 0, y: 0, z: 0),
+                Point3d(x: 0, y: 1, z: 0),
+                Point3d(x: 0, y: 0, z: 1),
+            ]),
+            Triangle(orderedVertices: [
+                Point3d(x: 0, y: 0, z: 0),
+                Point3d(x: 1, y: 0, z: 0),
+                Point3d(x: 0, y: 1, z: 0),
+            ]),
+        ])
         
         let renderer = Renderer3d()
         
@@ -420,7 +428,11 @@ struct ContentView: View {
             
             let rotatedCube = cube
             
-            let rendering = renderer.render(camera: camera, shapes: [rotatedCube, cube2])
+            let rendering = renderer.render(camera: camera, shapes: [
+                rotatedCube,
+                cube2,
+                origin
+            ])
             
             let centered: [Line<Point2d>] = rendering.map{ line in
                 
@@ -443,11 +455,15 @@ struct ContentView: View {
                 
                 print("cameraToWindowConversion: \(cameraToWindowConversion)")
                 func stretched(_ point: Point2d) -> Point2d {
-                    return Point2d(x: point.x * cameraToWindowConversion, y: point.y * cameraToWindowConversion)
+                    let stretched = Point2d(x: point.x * cameraToWindowConversion, y: point.y * cameraToWindowConversion)
+                    
+                    print("preStretch: \(point) postStretch: \(stretched)")
+                    
+                    return stretched
                 }
                 
                 func adjustToWindow(_ point: Point2d) -> Point2d {
-                    return stretched(centerPoint(point))
+                    return centerPoint(stretched(point))
                 }
                 
                 return Line(
@@ -522,9 +538,12 @@ struct ContentView: View {
                 case "d":
                     xPosition += movementAmount
                     break
+                case "c":
+                    yPosition -= movementAmount
+                    break
                 default:
                     switch(press.modifiers) {
-                    case EventModifiers.shift:
+                    case EventModifiers.control:
                             yPosition -= movementAmount
                             break
                     default:
