@@ -393,10 +393,26 @@ struct ContentView: View {
             
             let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
             
-            let projection = renderer.render(camera: camera, shapes: [rotatedCube, cube2])
+            let rendering = renderer.render(camera: camera, shapes: [rotatedCube, cube2])
+            
+            let centered: [Line<Point2d>] = rendering.map{ line in
+                func centerPoint(_ point: Point2d) -> Point2d {
+                    let centerX = size.width/2
+                    let centerY = size.height/2
+                    
+                    let flippedY = point.y * -1
+                    
+                    return Point2d(
+                        x: point.x + centerX,
+                        y: flippedY + centerY
+                    )
+                }
+                
+                return Line(start: centerPoint(line.start), end: centerPoint(line.end))
+            }
             
             let path = CGMutablePath()
-            for (i, line) in projection.enumerated() {
+            for (i, line) in centered.enumerated() {
                 
                 let start = CGPoint(x: line.start.x, y: line.start.y)
                 path.move(to: start)
