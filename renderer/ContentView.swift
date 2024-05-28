@@ -32,13 +32,6 @@ struct Point3d {
         self.z = z
     }
     
-    
-//    func moveInDirectionForDistance(direction: Vector, distance: Double) -> Point3d {
-//        let origin = self
-//        let directionAndDistance = direction.times(distance)
-//        return Point3d(x: origin.x + directionAndDistance.i, y: origin.y + directionAndDistance.j, z: origin.z + directionAndDistance.k)
-//    }
-    
     func dimension(_ index: Int) -> Double {
         return [x, y, z][min(index, 2)]
     }
@@ -315,6 +308,8 @@ struct Renderer3d {
         let x = point.x
         let y = point.y
         
+//        if (abs(x) > camera.frameWidth/2)
+        
         func sign(_ n: Double) -> Double {
             return (n < 0 ? -1 : 1)
         }
@@ -336,7 +331,7 @@ struct Renderer3d {
         if (intersectionPoint != nil) {
             let flattened = flatten(point: intersectionPoint!, camera: camera)
             
-            return constrainInFrame(point: flattened, camera: camera)
+            return flattened//constrainInFrame(point: flattened, camera: camera)
         } else {
             return nil
         }
@@ -367,7 +362,32 @@ struct Renderer3d {
             
             if (start2d != nil && end2d != nil) {
                 let projectedLine = Line(start: start2d!, end: end2d!)
-                return projectedLine
+                
+                func pointIsOutsideFrame(_ point: Point2d, _ camera: Camera) -> Bool {
+                    let xIsOutOfFrame = abs(point.x) > camera.frameWidth/2
+                    let yIsOutOfFrame = abs(point.y) > camera.frameHeight/2
+                    return xIsOutOfFrame || yIsOutOfFrame
+                }
+                func getPointInsideFrame(_ point: Point2d, _ otherPoint: Point2d, _ camrea: Camera) -> Point2d {
+                    let vectorPoint = Vector3d(dimensions: [point.x, point.y, 0])
+                    let vectorOtherPoint = Vector3d(dimensions: [otherPoint.x, otherPoint.y, 0])
+                    let lineAsVector = vectorPoint.minus(vectorOtherPoint).normalize()
+                    
+                    let slope = lineAsVector.dimensions[1] / lineAsVector.dimensions[0]
+                    
+                    return Point2d(
+                        x: camera.frameWidth/2 * (1/slope),
+                        y: camera.frameHeight/2 * slope
+                    )
+                }
+                
+                if (pointIsOutsideFrame(projectedLine.end, camera)) {
+                    return Line(start: projectedLine.start, end: getPointInsideFrame(projectedLine.start, projectedLine.end, camera))
+                } else if (pointIsOutsideFrame(projectedLine.start, camera)) {
+                        return Line(start: getPointInsideFrame(projectedLine.end, projectedLine.start, camera), end: projectedLine.end)
+                } else {
+                    return projectedLine
+                }
             } else {
                 return nil
             }
