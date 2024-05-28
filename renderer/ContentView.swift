@@ -219,27 +219,9 @@ struct Vector3d {
     }
     
     func cross(_ other: Vector3d) -> Vector3d {
-//        func nextDimension(i: Int) -> Int {
-//            if (i < dimensions.count-1) {
-//                i + 1
-//            } else {
-//                0
-//            }
-//        }
-//        
+        
         let otherDimensions = other.dimensions
-//        
-//        return Vector3d(dimensions: (0...(dimensions.count-1)).map { i in
-//            let i2 = nextDimension(i: i)
-//            let i3 = nextDimension(i: i2)
-//            
-//            let vector1 = Vector3d(dimensions: [dimensions[i2], otherDimensions[i2]])
-//            let vector2 = Vector3d(dimensions: [dimensions[i3], otherDimensions[i3]])
-//            
-//            let dot = vector1.dot(vector2)
-//            print("i: \(i), dot: \(dot), a: \(vector1), b: \(vector2)")
-//            return dot
-//        })
+        
         return Vector3d(dimensions: [
             (dimensions[1] * otherDimensions[2]) - (dimensions[2] * otherDimensions[1]),
             
@@ -289,15 +271,19 @@ struct Renderer3d {
         init(frameCenter: Point3d, direction: Vector3d, focalLength: Double) {
             self.frameCenter = frameCenter
             let vectorToFocalPoint = Vector3d(frameCenter).plus(direction.times(-focalLength))
-            self.focalPoint = Point3d(x: vectorToFocalPoint.dimensions[0], y: vectorToFocalPoint.dimensions[1], z: vectorToFocalPoint.dimensions[2])
-            self.direction = direction
+            self.focalPoint = Point3d(
+                x: vectorToFocalPoint.dimensions[0],
+                y: vectorToFocalPoint.dimensions[1],
+                z: vectorToFocalPoint.dimensions[2]
+            )
+            self.direction = direction.normalize()
         }
     }
     
     private func flatten(point: Point3d, camera: Camera) -> Point2d {
         let i = camera.direction
-        let j = i.cross(Vector3d(dimensions: [0, 1, 0])).normalize()
-        let k = j.cross(i).normalize()
+        let j = i.cross(Vector3d(dimensions: [0, 1, 0])).normalize().times(-1)
+        let k = j.cross(i).normalize().times(-1)
         
         let vectorPoint = Vector3d(point)
         
@@ -399,13 +385,11 @@ struct ContentView: View {
         
         return Canvas { context, size in
             
-            let vector1 = Vector3d(dimensions: [1, 2, 0])
-            let vector2 = Vector3d(dimensions: [4, 4, 4])
-            
-            let cross = vector1.cross(vector2)
-            print("cross: \(cross)")
-            
-            let camera = Renderer3d.Camera(frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition), direction: Vector3d(dimensions: [0,0,1]), focalLength: 50)
+            let camera = Renderer3d.Camera(
+                frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
+                direction: Vector3d(dimensions: [0,0,1]),
+                focalLength: 100
+            )
             
             let rotatedCube = cube.rotateAroundY(rotationCenter: cubeOrigin, angleRadians: yAngleRadians).rotateAroundX(rotationCenter: cubeOrigin, angleRadians: xAngleRadians)
             
