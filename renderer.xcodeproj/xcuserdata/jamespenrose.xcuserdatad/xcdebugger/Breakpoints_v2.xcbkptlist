@@ -14,8 +14,8 @@
             filePath = "renderer/ContentView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "324"
-            endingLineNumber = "324"
+            startingLineNumber = "316"
+            endingLineNumber = "316"
             landmarkName = "render(camera:shapes:)"
             landmarkType = "7">
          </BreakpointContent>
