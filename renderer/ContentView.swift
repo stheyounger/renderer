@@ -164,23 +164,22 @@ struct ContentView: View {
         let cubeOrigin = Point3d(x: 0, y: 0, z: 1.5)
         let cube = Cube(origin: cubeOrigin, sideLength: 1, color: .green).surface3d
         let cube2 = Cube(origin: Point3d(x: 5, y: 0, z: 2), sideLength: 1, color: .green).surface3d
-        let origin = Surface3d(triangles: [
-            Triangle(orderedVertices: [
-                Point3d(x: 0, y: 0, z: 0),
-                Point3d(x: 1, y: 0, z: 0),
-                Point3d(x: 0, y: 0, z: 1),
-            ]),
-            Triangle(orderedVertices: [
-                Point3d(x: 0, y: 0, z: 0),
-                Point3d(x: 0, y: 1, z: 0),
-                Point3d(x: 0, y: 0, z: 1),
-            ]),
-            Triangle(orderedVertices: [
-                Point3d(x: 0, y: 0, z: 0),
-                Point3d(x: 1, y: 0, z: 0),
-                Point3d(x: 0, y: 1, z: 0),
-            ]),
-        ], color: .blue)
+        
+        let xOrigin = Surface3d(triangles: [Triangle(orderedVertices: [
+            Point3d(x: 0, y: 0, z: 0),
+            Point3d(x: 0, y: 1, z: 0),
+            Point3d(x: 0, y: 0, z: 1),
+        ])], color: .red)
+        let yOrigin = Surface3d(triangles: [Triangle(orderedVertices: [
+            Point3d(x: 0, y: 0, z: 0),
+            Point3d(x: 1, y: 0, z: 0),
+            Point3d(x: 0, y: 0, z: 1),
+        ])], color: .green)
+        let zOrigin = Surface3d(triangles: [Triangle(orderedVertices: [
+            Point3d(x: 0, y: 0, z: 0),
+            Point3d(x: 1, y: 0, z: 0),
+            Point3d(x: 0, y: 1, z: 0),
+        ])], color: .blue)
         
         let renderer = Renderer3d()
         
@@ -202,7 +201,9 @@ struct ContentView: View {
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: [
                 cube,
                 cube2,
-                origin
+                xOrigin,
+                yOrigin,
+                zOrigin
             ])
             
             
@@ -243,7 +244,6 @@ struct ContentView: View {
                     }
                     
                     xAngleRadians += xRotation
-                    //                    yAngleRadians += yRotation
                     
                 })
         )
