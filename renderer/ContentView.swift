@@ -51,15 +51,15 @@ struct Cube {
 }
 
 struct Surface3d {
-    let triangles: [Triangle]
+    let triangles: [Triangle<Point3d>]
     let color: Color
     
-    init(triangles: [Triangle], color: Color) {
+    init(triangles: [Triangle<Point3d>], color: Color) {
         self.triangles = triangles
         self.color = color
     }
     
-    func copyColor(triangles: [Triangle]) -> Surface3d {
+    func copyColor(triangles: [Triangle<Point3d>]) -> Surface3d {
         return Surface3d(triangles: triangles, color: color)
     }
     
@@ -80,11 +80,11 @@ struct Surface3d {
 }
 
 struct Surface2d {
-    let lines: [Line<Point2d>]
+    let triangles: [Triangle<Point2d>]
     let color: Color
     
-    init(lines: [Line<Point2d>], color: Color) {
-        self.lines = lines
+    init(triangles: [Triangle<Point2d>], color: Color) {
+        self.triangles = triangles
         self.color = color
     }
 }
@@ -141,6 +141,23 @@ struct ContentView: View {
         
         return Path(path)
     }
+    private func triangleToCGPath(_ triangle: Triangle<Point2d>) -> Path {
+        let cgPoints: [CGPoint] = triangle.orderedVertices.map { point in
+            CGPoint(x: point.x, y: point.y)
+        }
+        
+        let path = CGMutablePath()
+        cgPoints.enumerated().forEach { i, point in
+            if (i == 0) {
+                path.move(to: point)
+            } else {
+                path.addLine(to: point)
+            }
+        }
+        
+        
+        return Path(path)
+    }
     
     var body: some View {
         
@@ -185,62 +202,29 @@ struct ContentView: View {
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: [
                 cube,
                 cube2,
-                origin  
+                origin
             ])
             
             
             let reorientedCoordinates: [Surface2d] = rendering.map { surface in
-                let lines = surface.lines
+                let triangles = surface.triangles
                 let color = surface.color
                 
-                let adjustedLines: [Line<Point2d>] = lines.map { line in
-                    
-                    return Line(
-                        start: reorientCoordinates(line.start, frameSize: size, camera: camera),
-                        end: reorientCoordinates(line.end, frameSize: size, camera: camera)
-                    )
+                let adjustedTriangles = triangles.map { triangle in
+                    Triangle(orderedVertices: triangle.orderedVertices.map { point in
+                        reorientCoordinates(point, frameSize: size, camera: camera)
+                    })
                 }
                 
-                return Surface2d(lines: adjustedLines, color: color)
+                return Surface2d(triangles: adjustedTriangles, color: color)
             }
+            
             
             reorientedCoordinates.forEach { surface in
-                surface.lines.forEach { line in
-                    context.stroke(lineToCGPath(line),
-                                   with: .color(surface.color),
-                                   lineWidth: 3)
+                surface.triangles.forEach { triangle in
+                    context.fill(triangleToCGPath(triangle), with: .color(surface.color))
                 }
             }
-            
-            
-            
-//            let paths: [Renderer3d.ColoredThing<Path>] = centered.map { coloredThing in
-//                let lines = coloredThing.thing
-//                let color = coloredThing.color
-//                
-//                let path = lines.map { lines in
-//                    
-//                    let start = CGPoint(x: line.start.x, y: line.start.y)
-//                    let end = CGPoint(x: line.end.x, y: line.end.y)
-//                    
-//                    let path = CGMutablePath()
-//                    path.move(to: start)
-//                    path.addLine(to: end)
-//                    
-//                    return Path(path)
-//                }
-//                
-//                return Renderer3d.ColoredThing(thing: path, color: color)
-//            }
-//            
-//            paths.forEach { coloredThing in
-//                let path = coloredThing.thing
-//                let color = coloredThing.color
-//                
-//                context.stroke(path,
-//                               with: .color(color),
-//                               lineWidth: 3)
-//            }
         }
         .focusable()
         .simultaneousGesture(

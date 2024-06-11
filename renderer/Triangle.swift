@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct Triangle {
-    let orderedVertices: [Point3d]
+struct Triangle<Point> {
+    let orderedVertices: [Point]
     
-    init(_ vertex1: Point3d, _ vertex2: Point3d, _ vertex3: Point3d) {
+    init(_ vertex1: Point, _ vertex2: Point, _ vertex3: Point) {
         self.orderedVertices = [vertex1, vertex2, vertex3]
     }
     
-    init(orderedVertices: [Point3d]) {
+    init(orderedVertices: [Point]) {
         self.orderedVertices = orderedVertices
     }
 }
