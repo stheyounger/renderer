@@ -30,6 +30,9 @@ struct Camera {
             z: vectorToFocalPoint.dimensions[2]
         )
         self.direction = normalizedDirection
+        print("frameCenter: \(self.frameCenter)")
+        print("focalPoint: \(self.focalPoint)")
+        print("direction: \(self.direction)")
         
         self.frameWidth = frameWidth
         self.frameHeight = frameHeight

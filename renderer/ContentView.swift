@@ -185,17 +185,15 @@ struct ContentView: View {
         
         return Canvas { context, size in
             
-            let direction = Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: -cos(xAngleRadians)))
-            
             let camera = Camera(
-                frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
-                direction: direction,
+                frameCenter: Point3d(x: -1, y: -0.1, z: 1),
+                direction: Vector3d(Point3d(x: 0, y: 0, z: -1)),
+//                frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
+//                direction: Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: -cos(xAngleRadians))),
                 focalLength: 0.8,
                 frameWidth: 1,
                 frameHeight: 1
             )
-            print("camera center: \(camera.frameCenter)")
-            print("camera focal point: \(camera.focalPoint)")
             
             
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: [
@@ -220,11 +218,25 @@ struct ContentView: View {
                 return Surface2d(triangles: adjustedTriangles, color: color)
             }
             
-            
             reorientedCoordinates.forEach { surface in
                 surface.triangles.forEach { triangle in
                     context.fill(triangleToCGPath(triangle), with: .color(surface.color))
                 }
+            }
+
+            
+            let debug = [
+                Point2d(x: 0.1, y: 0.1),
+                Point2d(x: -0.1, y: -0.1),
+                Point2d(x: 0.1, y: -0.1),
+                Point2d(x: -0.1, y: 0.1),
+                Point2d(x: 0.3, y: 0),
+                ]
+            debug.forEach { point in
+                let reorientedPoint = reorientCoordinates(point, frameSize: size, camera: camera)
+                let origin = reorientCoordinates(Point2d(x: 0, y: 0), frameSize: size, camera: camera)
+                
+                context.stroke(lineToCGPath(Line(start: origin, end: reorientedPoint)), with: .color(.white), lineWidth: 5)
             }
         }
         .focusable()
