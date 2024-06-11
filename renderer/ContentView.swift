@@ -7,84 +7,13 @@
 
 import SwiftUI
 
-struct Point2d {
-    let x: Double
-    let y: Double
-
-    init(x: Double, y: Double) {
-        self.x = x
-        self.y = y
-    }
-    
-    func angleRadians(_ point: Point2d) -> Double {
-        return atan2(y - point.y, x - point.x)
-    }
-}
-
-struct Point3d {
-    let x: Double
-    let y: Double
-    let z: Double
-    
-    init(x: Double, y: Double, z: Double) {
-        self.x = x
-        self.y = y
-        self.z = z
-    }
-    
-    func dimension(_ index: Int) -> Double {
-        return [x, y, z][min(index, 2)]
-    }
-    
-    func distance(_ point: Point3d) -> Double {
-        return sqrt( pow(x-point.x, 2) + pow(y-point.y, 2) + pow(z-point.z, 2) )
-    }
-    
-    func rotateAroundZ(rotationCenter: Point3d, angleRadians: Double) -> Point3d {
-        let distanceFromRotationCenter = hypot(self.x - rotationCenter.x, self.y - rotationCenter.y)
-        let angleToRotationCenterRad = atan2(self.y - rotationCenter.y, self.x - rotationCenter.x) + angleRadians
-            
-        let rotated =  Point3d(x: rotationCenter.x + (cos(angleToRotationCenterRad) * distanceFromRotationCenter),
-                           y: rotationCenter.y + (sin(angleToRotationCenterRad) * distanceFromRotationCenter),
-                           z: self.z)
-        return rotated
-    }
-    
-    func rotateAroundY(rotationCenter: Point3d, angleRadians: Double) -> Point3d {
-        let distanceFromRotationCenter = hypot(self.x - rotationCenter.x, self.z - rotationCenter.z)
-        let angleToRotationCenterRad = atan2(self.z - rotationCenter.z, self.x - rotationCenter.x) + angleRadians
-        
-        let rotated = Point3d(x: rotationCenter.x + (cos(angleToRotationCenterRad) * distanceFromRotationCenter),
-                       y: self.y,
-                       z: rotationCenter.z + (sin(angleToRotationCenterRad) * distanceFromRotationCenter))
-        return rotated
-    }
-    
-    func rotateAroundX(rotationCenter: Point3d, angleRadians: Double) -> Point3d {
-        let distanceFromRotationCenter = hypot(self.y - rotationCenter.y, self.z - rotationCenter.z)
-        let angleToRotationCenterRad = atan2(self.z - rotationCenter.z, self.y - rotationCenter.y) + angleRadians
-        
-        let rotated = Point3d(x: self.x,
-                       y: rotationCenter.y + (sin(angleToRotationCenterRad) * distanceFromRotationCenter),
-                       z: rotationCenter.z + (cos(angleToRotationCenterRad) * distanceFromRotationCenter))
-        return rotated
-    }
-}
-
-struct Line<Point> {
-    let start: Point
-    let end: Point
-    
-    init (start: Point, end: Point) {
-        self.start = start
-        self.end = end
-    }
-}
-
 struct Cube {
-    let polygonMesh: PolygonMesh
+    let surface3d: Surface3d
+    let color: Color
 
-    init (origin: Point3d, sideLength: Double) {
+    init (origin: Point3d, sideLength: Double, color: Color) {
+        self.color = color
+        
         let halfLength = sideLength/2
         
         let vertices = [
@@ -117,40 +46,32 @@ struct Cube {
             Triangle(vertices[2], vertices[6], vertices[7]),
         ]
         
-        self.polygonMesh = PolygonMesh(triangles: triangles)
+        self.surface3d = Surface3d(triangles: triangles, color: color)
     }
 }
 
-
-struct Triangle {
-    let orderedVertices: [Point3d]
-    
-    init(_ vertex1: Point3d, _ vertex2: Point3d, _ vertex3: Point3d) {
-        self.orderedVertices = [vertex1, vertex2, vertex3]
-    }
-    
-    init(orderedVertices: [Point3d]) {
-        self.orderedVertices = orderedVertices
-    }
-}
-
-struct PolygonMesh {
+struct Surface3d {
     let triangles: [Triangle]
+    let color: Color
     
-    init(triangles: [Triangle]) {
+    init(triangles: [Triangle], color: Color) {
         self.triangles = triangles
+        self.color = color
     }
     
+    func copyColor(triangles: [Triangle]) -> Surface3d {
+        return Surface3d(triangles: triangles, color: color)
+    }
     
-    func rotateAroundY(rotationCenter: Point3d, angleRadians: Double) -> PolygonMesh {
-        return PolygonMesh(triangles: triangles.map { triangle in
+    func rotateAroundY(rotationCenter: Point3d, angleRadians: Double) -> Surface3d {
+        return copyColor(triangles: triangles.map { triangle in
             Triangle(orderedVertices: triangle.orderedVertices.map { vertex in
                 vertex.rotateAroundY(rotationCenter: rotationCenter, angleRadians: angleRadians)
             })
         })
     }
-    func rotateAroundX(rotationCenter: Point3d, angleRadians: Double) -> PolygonMesh {
-        return PolygonMesh(triangles: triangles.map { triangle in
+    func rotateAroundX(rotationCenter: Point3d, angleRadians: Double) -> Surface3d {
+        return copyColor(triangles: triangles.map { triangle in
             Triangle(orderedVertices: triangle.orderedVertices.map { vertex in
                 vertex.rotateAroundX(rotationCenter: rotationCenter, angleRadians: angleRadians)
             })
@@ -158,251 +79,19 @@ struct PolygonMesh {
     }
 }
 
-struct Vector3d {
-    let dimensions: [Double]
+struct Surface2d {
+    let lines: [Line<Point2d>]
+    let color: Color
     
-    init(dimensions: [Double]) {
-        self.dimensions = dimensions
-    }
-    init(_ point: Point3d) {
-        dimensions = [point.x, point.y, point.z]
-    }
-    
-    func times(_ scalar: Double) -> Vector3d {
-        return Vector3d(dimensions: dimensions.map { dimension in
-            dimension * scalar
-        })
-    }
-    
-    func plus(_ other: Vector3d) -> Vector3d {
-        return Vector3d(dimensions: dimensions.enumerated().map { (i, dimension) in
-            let otherDimension = other.dimensions[i]
-            
-            return dimension + otherDimension
-        })
-    }
-    
-    func minus(_ other: Vector3d) -> Vector3d {
-        let otherNegated = other.dimensions.map{ dimension in -dimension }
-        return plus(Vector3d(dimensions: otherNegated))
-    }
-    
-    func magnitude() -> Double {
-        return sqrt(dimensions.reduce(0, { (acc, dimension) in
-            acc + pow(dimension, 2)
-        }))
-    }
-    
-    func normalize() -> Vector3d {
-        let magnitude = magnitude()
-        return Vector3d(dimensions: dimensions.map { dimension in
-            dimension / magnitude
-        })
-    }
-    
-    func dot(_ other: Vector3d) -> Double {
-        return dimensions.enumerated().reduce(0, { (acc, pair) in
-            let i: Int = (pair.0)
-            let dimension = (pair.1)
-            
-            let otherDimension = other.dimensions[i]
-            
-            return acc + (dimension * otherDimension)
-        })
-    }
-    
-    func cross(_ other: Vector3d) -> Vector3d {
-        
-        let otherDimensions = other.dimensions
-        
-        return Vector3d(dimensions: [
-            (dimensions[1] * otherDimensions[2]) - (dimensions[2] * otherDimensions[1]),
-            
-            (dimensions[2] * otherDimensions[0]) - (dimensions[0] * otherDimensions[2]),
-            
-            (dimensions[0] * otherDimensions[1]) - (dimensions[1] * otherDimensions[0]),
-        ])
-    }
-    
-    func translated(matrixColumns: [[Double]]) -> Vector3d {
-        return Vector3d(dimensions: matrixColumns.map { column in
-            Vector3d(dimensions: column).dot(self)
-        })
-    }
-}
-
-
-struct Plane {
-    
-    let normalVector: Vector3d
-    let pointOnPlane: Point3d
-    
-    init(normalVector: Vector3d, pointOnPlane: Point3d) {
-        self.normalVector = normalVector.normalize()
-        self.pointOnPlane = pointOnPlane
-    }
-
-    func findIntersectionOfLine(line: Line<Point3d>) -> Point3d? {
-        let lineOrigin = Vector3d(line.start)
-        let lineDirection = (lineOrigin.minus(Vector3d(line.end))).normalize()
-        
-        let distanceToIntersection = (normalVector.dot(Vector3d(pointOnPlane)) - normalVector.dot(lineOrigin)) / normalVector.dot(lineDirection)
-        
-        let lineLength = line.start.distance(line.end)
-        if (abs(distanceToIntersection) > abs(lineLength)) {
-            return nil
-        } else {
-            let vectorToIntersection = lineOrigin.plus(lineDirection.times(distanceToIntersection))
-            
-            return Point3d(x: vectorToIntersection.dimensions[0], y: vectorToIntersection.dimensions[1], z: vectorToIntersection.dimensions[2])
-        }
-    }
-}
-
-struct Renderer3d {
-    
-    struct Camera {
-        let frameCenter: Point3d
-        let focalPoint: Point3d
-        let direction: Vector3d
-        let frameWidth: Double
-        let frameHeight: Double
-        
-        init(
-            frameCenter: Point3d,
-            direction: Vector3d,
-            focalLength: Double,
-            frameWidth: Double,
-            frameHeight: Double
-        ) {
-            let normalizedDirection = direction.normalize()
-            self.frameCenter = frameCenter
-            let vectorToFocalPoint = Vector3d(frameCenter).plus(normalizedDirection.times(-focalLength))
-            self.focalPoint = Point3d(
-                x: vectorToFocalPoint.dimensions[0],
-                y: vectorToFocalPoint.dimensions[1],
-                z: vectorToFocalPoint.dimensions[2]
-            )
-            self.direction = normalizedDirection
-            
-            self.frameWidth = frameWidth
-            self.frameHeight = frameHeight
-        }
-    }
-    
-    private func flatten(point: Point3d, camera: Camera) -> Point2d {
-        let i = camera.direction
-        let j = i.cross(Vector3d(dimensions: [0, 1, 0])).normalize().times(-1)
-        let k = j.cross(i).normalize().times(-1)
-        
-        let vectorPoint = Vector3d(point)
-        
-        let flattenedPoint = vectorPoint.translated(matrixColumns: [j.dimensions, k.dimensions, i.dimensions])
-        
-        return Point2d(
-            x: flattenedPoint.dimensions[0],
-            y: flattenedPoint.dimensions[1]
-        )
-    }
-    
-    private func constrainInFrame(point: Point2d, camera: Camera) -> Point2d {
-        let x = point.x
-        let y = point.y
-        
-//        if (abs(x) > camera.frameWidth/2)
-        
-        func sign(_ n: Double) -> Double {
-            return (n < 0 ? -1 : 1)
-        }
-        
-        let inFrame = Point2d(
-            x: min(abs(x), camera.frameWidth/2) * sign(x),
-            y: min(abs(y), camera.frameHeight/2) * sign(y)
-        )
-        print("inFrame: \(inFrame)")
-        return inFrame
-    }
-    
-    private func projectPoint(point: Point3d, camera: Camera) -> Point2d? {
-        
-        let cameraPlane = Plane(normalVector: camera.direction, pointOnPlane: camera.frameCenter)
-        
-        let intersectionPoint = cameraPlane.findIntersectionOfLine(line: Line(start: camera.focalPoint, end: point))
-        
-        if (intersectionPoint != nil) {
-            let flattened = flatten(point: intersectionPoint!, camera: camera)
-            
-            return flattened//constrainInFrame(point: flattened, camera: camera)
-        } else {
-            return nil
-        }
-    }
-    
-    func render(camera: Camera, shapes: [PolygonMesh]) -> [Line<Point2d>] {
-        
-        let wireframe = shapes.flatMap { shape in
-            shape.triangles.flatMap { triangle in
-                triangle.orderedVertices.flatMap { vertex in
-                    triangle.orderedVertices.map { otherVertex in
-                        Line(start: vertex, end: otherVertex)
-                    }
-                }
-            }
-        }
-        
-        
-        let projected: [Line<Point2d>?] = wireframe.map { line in
-            let start2d = projectPoint(
-                point: line.start,
-                camera: camera
-            )
-            let end2d = projectPoint(
-                point: line.end,
-                camera: camera
-            )
-            
-            if (start2d != nil && end2d != nil) {
-                let projectedLine = Line(start: start2d!, end: end2d!)
-                
-                func pointIsOutsideFrame(_ point: Point2d, _ camera: Camera) -> Bool {
-                    let xIsOutOfFrame = abs(point.x) > camera.frameWidth/2
-                    let yIsOutOfFrame = abs(point.y) > camera.frameHeight/2
-                    return xIsOutOfFrame || yIsOutOfFrame
-                }
-                func getPointInsideFrame(_ point: Point2d, _ otherPoint: Point2d, _ camrea: Camera) -> Point2d {
-                    let vectorPoint = Vector3d(dimensions: [point.x, point.y, 0])
-                    let vectorOtherPoint = Vector3d(dimensions: [otherPoint.x, otherPoint.y, 0])
-                    let lineAsVector = vectorPoint.minus(vectorOtherPoint).normalize()
-                    
-                    let slope = lineAsVector.dimensions[1] / lineAsVector.dimensions[0]
-                    
-                    return Point2d(
-                        x: camera.frameWidth/2 * (1/slope),
-                        y: camera.frameHeight/2 * slope
-                    )
-                }
-                return projectedLine
-                
-                if (pointIsOutsideFrame(projectedLine.end, camera)) {
-                    return Line(start: projectedLine.start, end: getPointInsideFrame(projectedLine.start, projectedLine.end, camera))
-                } else if (pointIsOutsideFrame(projectedLine.start, camera)) {
-                        return Line(start: getPointInsideFrame(projectedLine.end, projectedLine.start, camera), end: projectedLine.end)
-                } else {
-                    return projectedLine
-                }
-            } else {
-                return nil
-            }
-        }
-        
-        return projected.filter { line in line != nil }.map { line in line! }
+    init(lines: [Line<Point2d>], color: Color) {
+        self.lines = lines
+        self.color = color
     }
 }
 
 
 struct ContentView: View {
     
-    @State private var yAngleRadians = 0.0
     @State private var xAngleRadians = Double.pi/2
     private let angleChangeRadians = Double.pi/20
     
@@ -411,12 +100,54 @@ struct ContentView: View {
     @State private var zPosition = 0.0
     private let movementAmount = 0.1
     
+    
+    func reorientCoordinates(_ point: Point2d, frameSize: CGSize, camera: Camera) -> Point2d {
+        func centerPoint(_ point: Point2d) -> Point2d {
+            let centerX = frameSize.width/2
+            let centerY = frameSize.height/2
+            
+            let flippedY = point.y * -1
+            
+            return Point2d(
+                x: point.x + centerX,
+                y: flippedY + centerY
+            )
+        }
+        
+        let smallSideOfWindow = min(frameSize.width, frameSize.height)
+        let smallSideOfCamera = min(camera.frameWidth, camera.frameHeight)
+        
+        let cameraToWindowConversion = smallSideOfWindow/smallSideOfCamera
+        
+        print("cameraToWindowConversion: \(cameraToWindowConversion)")
+        func stretched(_ point: Point2d) -> Point2d {
+            let stretched = Point2d(x: point.x * cameraToWindowConversion, y: point.y * cameraToWindowConversion)
+            
+            print("preStretch: \(point) postStretch: \(stretched)")
+            
+            return stretched
+        }
+        
+        return centerPoint(stretched(point))
+    }
+    
+    private func lineToCGPath(_ line: Line<Point2d>) -> Path {
+        let start = CGPoint(x: line.start.x, y: line.start.y)
+        let end = CGPoint(x: line.end.x, y: line.end.y)
+        
+        let path = CGMutablePath()
+        path.move(to: start)
+        path.addLine(to: end)
+        
+        return Path(path)
+    }
+    
     var body: some View {
         
         let cubeOrigin = Point3d(x: 0, y: 0, z: 1.5)
-        let cube = Cube(origin: cubeOrigin, sideLength: 1).polygonMesh
-        let cube2 = Cube(origin: Point3d(x: 5, y: 0, z: 2), sideLength: 1).polygonMesh
-        let origin = PolygonMesh(triangles: [
+        let cube = Cube(origin: cubeOrigin, sideLength: 1, color: .green).surface3d
+        let cube2 = Cube(origin: Point3d(x: 5, y: 0, z: 2), sideLength: 1, color: .green).surface3d
+        let origin = Surface3d(triangles: [
             Triangle(orderedVertices: [
                 Point3d(x: 0, y: 0, z: 0),
                 Point3d(x: 1, y: 0, z: 0),
@@ -432,19 +163,17 @@ struct ContentView: View {
                 Point3d(x: 1, y: 0, z: 0),
                 Point3d(x: 0, y: 1, z: 0),
             ]),
-        ])
+        ], color: .blue)
         
         let renderer = Renderer3d()
         
         return Canvas { context, size in
             
-            let camera = Renderer3d.Camera(
+            let direction = Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: -cos(xAngleRadians)))
+            
+            let camera = Camera(
                 frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
-                direction: Vector3d(dimensions:
-                                        [sin(yAngleRadians),
-                                         cos(xAngleRadians) * cos(yAngleRadians),
-                                         sin(xAngleRadians) * cos(yAngleRadians)
-                                        ]),
+                direction: direction,
                 focalLength: 0.8,
                 frameWidth: 1,
                 frameHeight: 1
@@ -452,65 +181,66 @@ struct ContentView: View {
             print("camera center: \(camera.frameCenter)")
             print("camera focal point: \(camera.focalPoint)")
             
-            let rotatedCube = cube
             
-            let rendering = renderer.render(camera: camera, shapes: [
-                rotatedCube,
+            let rendering: [Surface2d] = renderer.render(camera: camera, objects: [
+                cube,
                 cube2,
-                origin
+                origin  
             ])
             
-            let centered: [Line<Point2d>] = rendering.map{ line in
+            
+            let reorientedCoordinates: [Surface2d] = rendering.map { surface in
+                let lines = surface.lines
+                let color = surface.color
                 
-                func centerPoint(_ point: Point2d) -> Point2d {
-                    let centerX = size.width/2
-                    let centerY = size.height/2
+                let adjustedLines: [Line<Point2d>] = lines.map { line in
                     
-                    let flippedY = point.y * -1
-                    
-                    return Point2d(
-                        x: point.x + centerX,
-                        y: flippedY + centerY
+                    return Line(
+                        start: reorientCoordinates(line.start, frameSize: size, camera: camera),
+                        end: reorientCoordinates(line.end, frameSize: size, camera: camera)
                     )
                 }
                 
-                let smallSideOfWindow = min(size.width, size.height)
-                let smallSideOfCamera = min(camera.frameWidth, camera.frameHeight)
-                
-                let cameraToWindowConversion = smallSideOfWindow/smallSideOfCamera
-                
-                print("cameraToWindowConversion: \(cameraToWindowConversion)")
-                func stretched(_ point: Point2d) -> Point2d {
-                    let stretched = Point2d(x: point.x * cameraToWindowConversion, y: point.y * cameraToWindowConversion)
-                    
-                    print("preStretch: \(point) postStretch: \(stretched)")
-                    
-                    return stretched
-                }
-                
-                func adjustToWindow(_ point: Point2d) -> Point2d {
-                    return centerPoint(stretched(point))
-                }
-                
-                return Line(
-                    start: adjustToWindow(line.start),
-                    end: adjustToWindow(line.end)
-                )
+                return Surface2d(lines: adjustedLines, color: color)
             }
             
-            let path = CGMutablePath()
-            for (i, line) in centered.enumerated() {
-                
-                let start = CGPoint(x: line.start.x, y: line.start.y)
-                path.move(to: start)
-                
-                let end = CGPoint(x: line.end.x, y: line.end.y)
-                path.addLine(to: end)
+            reorientedCoordinates.forEach { surface in
+                surface.lines.forEach { line in
+                    context.stroke(lineToCGPath(line),
+                                   with: .color(surface.color),
+                                   lineWidth: 3)
+                }
             }
             
-            context.stroke(Path(path),
-                           with: .color(.green),
-                           lineWidth: 3)
+            
+            
+//            let paths: [Renderer3d.ColoredThing<Path>] = centered.map { coloredThing in
+//                let lines = coloredThing.thing
+//                let color = coloredThing.color
+//                
+//                let path = lines.map { lines in
+//                    
+//                    let start = CGPoint(x: line.start.x, y: line.start.y)
+//                    let end = CGPoint(x: line.end.x, y: line.end.y)
+//                    
+//                    let path = CGMutablePath()
+//                    path.move(to: start)
+//                    path.addLine(to: end)
+//                    
+//                    return Path(path)
+//                }
+//                
+//                return Renderer3d.ColoredThing(thing: path, color: color)
+//            }
+//            
+//            paths.forEach { coloredThing in
+//                let path = coloredThing.thing
+//                let color = coloredThing.color
+//                
+//                context.stroke(path,
+//                               with: .color(color),
+//                               lineWidth: 3)
+//            }
         }
         .focusable()
         .simultaneousGesture(
@@ -529,22 +259,16 @@ struct ContentView: View {
                     }
                     
                     xAngleRadians += xRotation
-                    yAngleRadians += yRotation
+                    //                    yAngleRadians += yRotation
                     
                 })
         )
-        .onKeyPress { press in
+        .onKeyPress(action:  { press in
             switch (press.key) {
-            case KeyEquivalent.leftArrow:
-                yAngleRadians += angleChangeRadians
-                break
             case KeyEquivalent.rightArrow:
-                yAngleRadians -= angleChangeRadians
-                break
-            case KeyEquivalent.upArrow:
                 xAngleRadians += angleChangeRadians
                 break
-            case KeyEquivalent.downArrow:
+            case KeyEquivalent.leftArrow:
                 xAngleRadians -= angleChangeRadians
                 break
             case KeyEquivalent.space:
@@ -570,8 +294,8 @@ struct ContentView: View {
                 default:
                     switch(press.modifiers) {
                     case EventModifiers.control:
-                            yPosition -= movementAmount
-                            break
+                        yPosition -= movementAmount
+                        break
                     default:
                         break
                     }
@@ -580,7 +304,7 @@ struct ContentView: View {
                 break
             }
             return .handled
-        }
+        })
     }
 }
 
