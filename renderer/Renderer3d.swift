@@ -31,15 +31,25 @@ struct Renderer3d {
         
         let cameraPlane = Plane(normalVector: camera.direction, pointOnPlane: camera.frameCenter)
         
-        let intersectionPoint = cameraPlane.findIntersectionOfLine(line: Line(start: camera.focalPoint, end: point))
+        let ray = Line(start: camera.focalPoint, end: point)
         
-        if (intersectionPoint != nil) {
+        let rayDirection = Vector3d(ray.start.minus(ray.end)).normalize()
+        let pointIsInFrontOfTheCamera = camera.direction.dot(rayDirection) <= 0
+        if (pointIsInFrontOfTheCamera) {
             
-            let relativeToFrame = intersectionPoint!.minus(camera.frameCenter)
+            let intersectionPoint = cameraPlane.findIntersectionOfLine(line: ray)
             
-            let flattened = flatten(point: relativeToFrame, camera: camera)
             
-            return flattened
+            if (intersectionPoint != nil) {
+                
+                let relativeToFrame = intersectionPoint!.minus(camera.frameCenter)
+                
+                let flattened = flatten(point: relativeToFrame, camera: camera)
+                
+                return flattened
+            } else {
+                return nil
+            }
         } else {
             return nil
         }
@@ -50,18 +60,16 @@ struct Renderer3d {
         let surfacesOrderedByDepth = objects.sorted(by: { A, B in
             
             func calcDepth(_ surface: Surface3d) -> Double {
-                
                 let sumOfCenters = surface.triangles.reduce(Point3d(x: 0, y: 0, z: 0)) { acc, triangle in
                     acc.plus(triangle.centerPoint3d()!)
                 }
                 
                 let numberOfTriangles = Double(surface.triangles.count)
                 let centerOfSurface = Point3d(x: sumOfCenters.x/numberOfTriangles, y: sumOfCenters.y/numberOfTriangles, z: sumOfCenters.z/numberOfTriangles)
-        
+                
                 let distanceToCameraCenter = camera.frameCenter.distance(centerOfSurface)
                 return distanceToCameraCenter
             }
-            
             
             let aIsBeforeB = calcDepth(A) > calcDepth(B)
             
