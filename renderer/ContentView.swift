@@ -96,9 +96,9 @@ struct ContentView: View {
     private let movementAmount = 0.1
     
     
-    @State private var frameCenter = Point3d(x: 0, y: 0, z: 0)
+    @State private var frameCenter = Point3d(x: 0, y: 0, z: 1)
 //    @State private var direction = Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: cos(xAngleRadians)))
-    @State private var direction = Vector3d(Point3d(x: 0, y: 0, z: -1))
+    @State private var direction = Vector3d(Point3d(x: 0, y: 0, z: -1)).normalize()
     
     
     func reorientCoordinates(_ point: Point2d, frameSize: CGSize, camera: Camera) -> Point2d {
@@ -161,10 +161,8 @@ struct ContentView: View {
 //    kjhkjhg
     private func changeAngle(angleChangeRadians: Double) {
         let directionRadians = atan2(direction.toPoint3d().x, direction.toPoint3d().z)
-        print("directionRadians:  \(directionRadians)")
         
         let newDirectionRadians = directionRadians + angleChangeRadians
-        print("newDirectionRadians: \(newDirectionRadians)")
         
         direction = Vector3d(Point3d(x: sin(newDirectionRadians), y: 0, z: cos(newDirectionRadians))).normalize()
     }
@@ -172,13 +170,16 @@ struct ContentView: View {
     private func translateBy(_ positionChange: Point3d) {
         let positionChangeVector = Vector3d(positionChange)
         
-        let positionChangeDirection = positionChangeVector.normalize()
-        let positionChangeMagnitude = positionChangeVector.magnitude()
+        let camera = Camera(
+            frameCenter: frameCenter,
+            direction: direction,
+            focalLength: 0.8,
+            frameWidth: 1,
+            frameHeight: 1
+        )
         
-        let adjustedPositionChangeDirection = direction.plus(positionChangeDirection).normalize()
+        let adjustedPositionChange = positionChangeVector.translated(matrixColumns: [camera.horizontalDirection.dimensions, camera.verticalDirection.dimensions, direction.dimensions])
         
-        let adjustedPositionChange = adjustedPositionChangeDirection.times(positionChangeMagnitude)
-            
         frameCenter = frameCenter.plus(adjustedPositionChange.toPoint3d())
     }
     
@@ -287,10 +288,10 @@ struct ContentView: View {
             
             switch (press.key) {
             case KeyEquivalent.rightArrow:
-                changeAngle(angleChangeRadians: angleChangeRadians)
+                changeAngle(angleChangeRadians: -angleChangeRadians)
                 break
             case KeyEquivalent.leftArrow:
-                changeAngle(angleChangeRadians: -angleChangeRadians)
+                changeAngle(angleChangeRadians: angleChangeRadians)
                 break
             case KeyEquivalent.space:
                 translateBy(Point3d(x: 0, y: movementAmount, z: 0))
@@ -298,10 +299,10 @@ struct ContentView: View {
             default:
                 switch (press.characters) {
                 case "w":
-                    translateBy(Point3d(x: 0, y: 0, z: -movementAmount))
+                    translateBy(Point3d(x: 0, y: 0, z: movementAmount))
                     break
                 case "s":
-                    translateBy(Point3d(x: 0, y: 0, z: movementAmount))
+                    translateBy(Point3d(x: 0, y: 0, z: -movementAmount))
                     break
                 case "a":
                     translateBy(Point3d(x: -movementAmount, y: 0, z: 0))
