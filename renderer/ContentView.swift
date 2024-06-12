@@ -139,7 +139,7 @@ struct ContentView: View {
 //    kjhkjhg
     private func changeAngle(directionChange: Vector3d) {
         let newZ = directionChange.normalize()
-        let inter = newZ.times(-1).plus(Vector3d(Point3d(x: 0, y: 0.1, z: 0)))
+        let inter = newZ.times(-1).plus(Vector3d(Point3d(x: 0, y: 0.0000001, z: 0)))
         print("interj: \(inter)")
         let newX = inter.cross(newZ).normalize()
         print("newX: \(newX)")
@@ -168,9 +168,13 @@ struct ContentView: View {
             x: 0,
             y: sin(angleChangeRadians),
             z: cos(angleChangeRadians)
-        ))
+        )).normalize()
         
-        changeAngle(directionChange: directionChange)
+        let vertical = Vector3d(Point3d(x: 0, y: 1, z: 0))
+        let notVerticalYet = abs(directionChange.dot(vertical)) < 0.99
+        if (notVerticalYet) {
+            changeAngle(directionChange: directionChange)
+        }
     }
     
     private func translateBy(_ positionChange: Point3d) {
@@ -184,10 +188,14 @@ struct ContentView: View {
             frameHeight: 1
         )
         
+        let vert = Vector3d(Point3d(x: 0, y: 1, z: 0))
         let adjustedPositionChange = positionChangeVector.translated(matrixColumns: [
             camera.horizontalDirection.dimensions,
-            camera.verticalDirection.dimensions,
-            direction.dimensions])
+            vert.dimensions,
+            vert.cross(camera.horizontalDirection).dimensions
+//            camera.verticalDirection.dimensions,
+//            direction.dimensions
+        ])
         
         frameCenter = frameCenter.plus(adjustedPositionChange.toPoint3d())
     }
