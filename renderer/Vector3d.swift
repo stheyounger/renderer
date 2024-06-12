@@ -83,4 +83,8 @@ struct Vector3d {
     func toPoint3d() -> Point3d {
         return Point3d(x: dimensions[0], y: dimensions[1], z: dimensions[2])
     }
+    
+    func angleRadiansBetween(_ other: Vector3d) -> Double {
+        return acos(self.dot(other) / (self.magnitude() * other.magnitude()))
+    }
 }

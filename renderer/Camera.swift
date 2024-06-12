@@ -33,11 +33,16 @@ struct Camera {
         let normalizedDirection = direction.normalize()
         
         self.direction = normalizedDirection
-        self.verticalDirection = Vector3d(Point3d(x: 0, y: 1, z: 0))
-        self.horizontalDirection = normalizedDirection.cross(verticalDirection).normalize()
+    
+        let intermediate = normalizedDirection.times(-1).plus(Vector3d(dimensions: [0, 0.1, 0])).normalize()
+//        self.verticalDirection = Vector3d(Point3d(x: 0, y: 1, z: 0))
+        self.horizontalDirection = normalizedDirection.cross(intermediate).normalize()
+        
+        self.verticalDirection = horizontalDirection.cross(normalizedDirection).normalize()
         print("direction: \(direction)")
-        print("verticalDirection: \(verticalDirection)")
+        print("intermediate: \(intermediate)")
         print("horizontalDirection: \(horizontalDirection)")
+        print("verticalDirection: \(verticalDirection)")
         
         let vectorToFocalPoint = Vector3d(frameCenter).plus(normalizedDirection.times(-focalLength))
         self.focalPoint = Point3d(

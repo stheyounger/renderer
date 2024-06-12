@@ -137,12 +137,27 @@ struct ContentView: View {
     }
     
 //    kjhkjhg
-    private func changeAngle(angleChangeRadians: Double) {
-        let directionRadians = atan2(direction.toPoint3d().x, direction.toPoint3d().z)
+    private func changeAngle(horizontalAngleChangeRadians: Double, verticalAngleChangeRadians: Double) {
         
-        let newDirectionRadians = directionRadians + angleChangeRadians
+        let directionPoint = direction.toPoint3d()
         
-        direction = Vector3d(Point3d(x: sin(newDirectionRadians), y: 0, z: cos(newDirectionRadians))).normalize()
+        let horizontalMetric = Vector3d(Point3d(x: 1, y: 0, z: 0))
+        let horizontalFoldedDirection = Vector3d(Point3d(x: directionPoint.x, y: 0, z: directionPoint.z)).normalize()
+        let horizontalDirectionRadians = horizontalMetric.angleRadiansBetween(horizontalFoldedDirection)
+        let newHorizontalDirectionRadians = horizontalDirectionRadians + horizontalAngleChangeRadians
+        print("horizontalDirectionRadians: \(horizontalDirectionRadians)")
+        
+        let verticalMetric = Vector3d(Point3d(x: 0, y: 1, z: 0))
+        let verticalFoldedDirection = Vector3d(Point3d(x: 0, y: directionPoint.y, z: directionPoint.z)).normalize()
+        let verticalDirectionRadians = verticalMetric.angleRadiansBetween(verticalFoldedDirection)
+        let newVerticalDirectionRadians = verticalDirectionRadians + verticalAngleChangeRadians
+        print("verticalDirectionRadians: \(verticalDirectionRadians)")
+        
+        direction = Vector3d(Point3d(
+            x: cos(newHorizontalDirectionRadians) * cos(newVerticalDirectionRadians),
+            y: sin(newHorizontalDirectionRadians) * sin(newVerticalDirectionRadians),
+            z: sin(newHorizontalDirectionRadians) * cos(newVerticalDirectionRadians)
+        )).normalize()
     }
     
     private func translateBy(_ positionChange: Point3d) {
@@ -164,7 +179,7 @@ struct ContentView: View {
     var body: some View {
         
         let cubeOrigin = Point3d(x: 0, y: 0, z: 1.5)
-        let cube = Cube(origin: cubeOrigin, sideLength: 1, color: .green).surface3d
+        let cube = Cube(origin: cubeOrigin, sideLength: 4, color: .green).surface3d
         let cube2 = Cube(origin: Point3d(x: 5, y: 0, z: 2), sideLength: 1, color: .green).surface3d
         
         
@@ -240,7 +255,7 @@ struct ContentView: View {
                     }
                     
                     
-                    changeAngle(angleChangeRadians: xRotation)
+                    changeAngle(horizontalAngleChangeRadians: xRotation, verticalAngleChangeRadians: 0)
                     
                 })
         )
@@ -248,10 +263,10 @@ struct ContentView: View {
             
             switch (press.key) {
             case KeyEquivalent.rightArrow:
-                changeAngle(angleChangeRadians: -angleChangeRadians)
+                changeAngle(horizontalAngleChangeRadians: -angleChangeRadians, verticalAngleChangeRadians: 0)
                 break
             case KeyEquivalent.leftArrow:
-                changeAngle(angleChangeRadians: angleChangeRadians)
+                changeAngle(horizontalAngleChangeRadians: angleChangeRadians, verticalAngleChangeRadians: 0)
                 break
             case KeyEquivalent.space:
                 translateBy(Point3d(x: 0, y: movementAmount, z: 0))
