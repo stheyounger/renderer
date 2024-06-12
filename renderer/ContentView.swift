@@ -92,7 +92,7 @@ struct Surface2d {
 
 struct ContentView: View {
     
-    @State private var xAngleRadians = Double.pi/2
+    @State private var xAngleRadians = 0.0
     private let angleChangeRadians = Double.pi/20
     
     @State private var xPosition = 0.0
@@ -106,7 +106,7 @@ struct ContentView: View {
             let centerX = frameSize.width/2
             let centerY = frameSize.height/2
             
-            let flippedY = point.y * -1
+            let flippedY = -point.y
             
             return Point2d(
                 x: point.x + centerX,
@@ -186,10 +186,10 @@ struct ContentView: View {
         return Canvas { context, size in
             
             let camera = Camera(
-                frameCenter: Point3d(x: 0, y: 0, z: 0),
-//                frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
-                direction: Vector3d(Point3d(x: 0, y: 0, z: -1)),
-//                direction: Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: -cos(xAngleRadians))),
+//                frameCenter: Point3d(x: 0, y: 0.5, z: 0),
+                frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
+//                direction: Vector3d(Point3d(x: 0, y: 0, z: -1)),
+                direction: Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: cos(xAngleRadians))),
                 focalLength: 0.8,
                 frameWidth: 1,
                 frameHeight: 1
