@@ -186,9 +186,9 @@ struct ContentView: View {
         return Canvas { context, size in
             
             let camera = Camera(
-                frameCenter: Point3d(x: -1, y: -0.1, z: 1),
-                direction: Vector3d(Point3d(x: 0, y: 0, z: -1)),
+                frameCenter: Point3d(x: 0, y: 0, z: 0),
 //                frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
+                direction: Vector3d(Point3d(x: 0, y: 0, z: -1)),
 //                direction: Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: -cos(xAngleRadians))),
                 focalLength: 0.8,
                 frameWidth: 1,
@@ -197,8 +197,8 @@ struct ContentView: View {
             
             
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: [
-                cube,
-                cube2,
+//                cube,
+//                cube2,
                 xOrigin,
                 yOrigin,
                 zOrigin
@@ -236,7 +236,7 @@ struct ContentView: View {
                 let reorientedPoint = reorientCoordinates(point, frameSize: size, camera: camera)
                 let origin = reorientCoordinates(Point2d(x: 0, y: 0), frameSize: size, camera: camera)
                 
-                context.stroke(lineToCGPath(Line(start: origin, end: reorientedPoint)), with: .color(.white), lineWidth: 5)
+//                context.stroke(lineToCGPath(Line(start: origin, end: reorientedPoint)), with: .color(.white), lineWidth: 5)
             }
         }
         .focusable()
@@ -273,10 +273,10 @@ struct ContentView: View {
             default:
                 switch (press.characters) {
                 case "w":
-                    zPosition += movementAmount
+                    zPosition -= movementAmount
                     break
                 case "s":
-                    zPosition -= movementAmount
+                    zPosition += movementAmount
                     break
                 case "a":
                     xPosition -= movementAmount

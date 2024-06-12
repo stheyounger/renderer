@@ -14,11 +14,15 @@ struct Renderer3d {
     private func flatten(point: Point3d, camera: Camera) -> Point2d {
         let direction = camera.direction
         let y = Vector3d(Point3d(x: 0, y: 1, z: 0))
-        let x = y.cross(direction).normalize()
+        let x = direction.cross(y).normalize()
+        print("direction: \(direction)")
+        print("vy: \(y)")
+        print("vx: \(x)")
         
         let vectorPoint = Vector3d(point)
-        
         let flattenedPoint = vectorPoint.translated(matrixColumns: [x.dimensions, y.dimensions, direction.dimensions])
+        print("intersectionWithCamera: \(vectorPoint)")
+        print("flattenedPoint: \(flattenedPoint)")
         
         return Point2d(
             x: flattenedPoint.dimensions[0],
@@ -33,7 +37,10 @@ struct Renderer3d {
         let intersectionPoint = cameraPlane.findIntersectionOfLine(line: Line(start: camera.focalPoint, end: point))
         
         if (intersectionPoint != nil) {
-            let flattened = flatten(point: intersectionPoint!, camera: camera)
+            
+            let relativeToFrame = intersectionPoint!.minus(camera.frameCenter)
+            
+            let flattened = flatten(point: relativeToFrame, camera: camera)
             
             return flattened
         } else {
