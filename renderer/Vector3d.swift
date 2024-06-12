@@ -88,3 +88,56 @@ struct Vector3d {
         return acos(self.dot(other) / (self.magnitude() * other.magnitude()))
     }
 }
+
+struct Matrix2x2 {
+    let columns: [[Double]]
+    
+    init(_ columns: [[Double]]) {
+        self.columns = columns
+    }
+    
+    func determinant() -> Double {
+        return (columns[0][0] * columns[1][1]) - (columns[1][0] * columns[0][1])
+    }
+}
+
+struct Matrix3x3 {
+    let columns: [[Double]]
+    
+    init(_ columns: [[Double]]) {
+        self.columns = columns
+    }
+    
+    func determinant() -> Double {
+        let a = columns[0][0] * Matrix2x2([Array(columns[1].dropFirst()), Array(columns[2].dropFirst())]).determinant()
+        
+        let b = columns[1][0] * Matrix2x2([Array(columns[0].dropFirst()), Array(columns[2].dropFirst())]).determinant()
+        
+        let c = columns[2][0] * Matrix2x2([Array(columns[0].dropFirst()), Array(columns[1].dropFirst())]).determinant()
+        
+        return a - b + c
+    }
+    
+    private func columnTimes(_ column: [Double], _ scalar: Double) -> [Double] {
+        return column.map { it in
+            it * scalar
+        }
+    }
+    
+    private func columnDrop(_ column: [Double], _ index: Int) -> [Double] {
+        return column.enumerated().filter { i, it in
+            i != index
+        }.map{i, it in it}
+    }
+    
+    func inverse() -> Matrix3x3 {
+        return Matrix3x3((0...2).map { i in
+            columnTimes(
+                [Matrix2x2([ columnDrop(columns[1], i), columnDrop(columns[2], i) ]).determinant(),
+                 Matrix2x2([ columnDrop(columns[2], i), columnDrop(columns[0], i) ]).determinant(),
+                 Matrix2x2([ columnDrop(columns[0], i), columnDrop(columns[1], i) ]).determinant()],
+                1/determinant()
+            )
+        })
+    }
+}

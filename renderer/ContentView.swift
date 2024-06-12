@@ -139,25 +139,32 @@ struct ContentView: View {
 //    kjhkjhg
     private func changeAngle(horizontalAngleChangeRadians: Double, verticalAngleChangeRadians: Double) {
         
-        let directionPoint = direction.toPoint3d()
-        
-        let horizontalMetric = Vector3d(Point3d(x: 1, y: 0, z: 0))
-        let horizontalFoldedDirection = Vector3d(Point3d(x: directionPoint.x, y: 0, z: directionPoint.z)).normalize()
-        let horizontalDirectionRadians = horizontalMetric.angleRadiansBetween(horizontalFoldedDirection)
-        let newHorizontalDirectionRadians = horizontalDirectionRadians + horizontalAngleChangeRadians
-        print("horizontalDirectionRadians: \(horizontalDirectionRadians)")
-        
-        let verticalMetric = Vector3d(Point3d(x: 0, y: 1, z: 0))
-        let verticalFoldedDirection = Vector3d(Point3d(x: 0, y: directionPoint.y, z: directionPoint.z)).normalize()
-        let verticalDirectionRadians = verticalMetric.angleRadiansBetween(verticalFoldedDirection)
-        let newVerticalDirectionRadians = verticalDirectionRadians + verticalAngleChangeRadians
-        print("verticalDirectionRadians: \(verticalDirectionRadians)")
-        
-        direction = Vector3d(Point3d(
-            x: cos(newHorizontalDirectionRadians) * cos(newVerticalDirectionRadians),
-            y: sin(newHorizontalDirectionRadians) * sin(newVerticalDirectionRadians),
-            z: sin(newHorizontalDirectionRadians) * cos(newVerticalDirectionRadians)
+//        let newZ = Vector3d(Point3d(
+//            x: cos(horizontalAngleChangeRadians) * cos(verticalAngleChangeRadians),
+//            y: sin(horizontalAngleChangeRadians) * sin(verticalAngleChangeRadians),
+//            z: sin(horizontalAngleChangeRadians) * cos(verticalAngleChangeRadians)
+//        )).normalize()
+        let newZ = Vector3d(Point3d(
+            x: sin(horizontalAngleChangeRadians),
+            y: 0,
+            z: cos(horizontalAngleChangeRadians)
         )).normalize()
+        print("newZ: \(newZ)")
+        
+        let inter = newZ.times(-1).plus(Vector3d(Point3d(x: 0, y: 0.1, z: 0)))
+        print("interj: \(inter)")
+        let newX = inter.cross(newZ).normalize()
+        print("newX: \(newX)")
+        
+        let newY = newZ.cross(newX).normalize()
+        print("newY: \(newY)")
+        
+        let newBasis = Matrix3x3([newX.dimensions, newY.dimensions, newZ.dimensions]).inverse()
+        print("newBasis: \(newBasis)")
+        
+        
+        
+        direction = direction.translated(matrixColumns: newBasis.columns)
     }
     
     private func translateBy(_ positionChange: Point3d) {
