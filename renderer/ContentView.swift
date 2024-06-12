@@ -210,9 +210,7 @@ struct ContentView: View {
         
         return Canvas { context, size in
             let camera = Camera(
-//                frameCenter: Point3d(x: 0, y: 0.5, z: 0),
                 frameCenter: frameCenter,
-//                direction: Vector3d(Point3d(x: 0, y: 0, z: -1)),
                 direction: direction,
                 focalLength: 0.8,
                 frameWidth: 1,
@@ -221,8 +219,8 @@ struct ContentView: View {
             
             
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: [
-//                cube,
-//                cube2,
+                cube,
+                cube2,
                 xOrigin,
                 yOrigin,
                 zOrigin

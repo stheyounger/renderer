@@ -46,7 +46,29 @@ struct Renderer3d {
     }
     
     func render(camera: Camera, objects: [Surface3d]) -> [Surface2d] {
-        return objects.map { object in
+        
+        let surfacesOrderedByDepth = objects.sorted(by: { A, B in
+            
+            func calcDepth(_ surface: Surface3d) -> Double {
+                
+                let sumOfCenters = surface.triangles.reduce(Point3d(x: 0, y: 0, z: 0)) { acc, triangle in
+                    acc.plus(triangle.centerPoint3d()!)
+                }
+                
+                let numberOfTriangles = Double(surface.triangles.count)
+                let centerOfSurface = Point3d(x: sumOfCenters.x/numberOfTriangles, y: sumOfCenters.y/numberOfTriangles, z: sumOfCenters.z/numberOfTriangles)
+        
+                let distanceToCameraCenter = camera.frameCenter.distance(centerOfSurface)
+                return distanceToCameraCenter
+            }
+            
+            
+            let aIsBeforeB = calcDepth(A) > calcDepth(B)
+            
+            return aIsBeforeB
+        })
+        
+        return surfacesOrderedByDepth.map { object in
             
             let projection: [Triangle<Point2d>?] = object.triangles.map { triangle in
                 let projectedPoints = triangle.orderedVertices.map { point in
