@@ -137,20 +137,8 @@ struct ContentView: View {
     }
     
 //    kjhkjhg
-    private func changeAngle(horizontalAngleChangeRadians: Double, verticalAngleChangeRadians: Double) {
-        
-//        let newZ = Vector3d(Point3d(
-//            x: cos(horizontalAngleChangeRadians) * cos(verticalAngleChangeRadians),
-//            y: sin(horizontalAngleChangeRadians) * sin(verticalAngleChangeRadians),
-//            z: sin(horizontalAngleChangeRadians) * cos(verticalAngleChangeRadians)
-//        )).normalize()
-        let newZ = Vector3d(Point3d(
-            x: sin(horizontalAngleChangeRadians),
-            y: 0,
-            z: cos(horizontalAngleChangeRadians)
-        )).normalize()
-        print("newZ: \(newZ)")
-        
+    private func changeAngle(directionChange: Vector3d) {
+        let newZ = directionChange.normalize()
         let inter = newZ.times(-1).plus(Vector3d(Point3d(x: 0, y: 0.1, z: 0)))
         print("interj: \(inter)")
         let newX = inter.cross(newZ).normalize()
@@ -162,14 +150,27 @@ struct ContentView: View {
         let newBasis = Matrix3x3([newX.dimensions, newY.dimensions, newZ.dimensions]).inverse()
         print("newBasis: \(newBasis)")
         
-//        let identity = Matrix3x3([[1,0,0], [0,1,0], [0,0,1]])
-//        let identityInverse = identity.inverse()
-//        print("identity: \(identity)")
-//        print("identity determinant: \(identity.determinant())")
-//        print("identityInverse: \(identityInverse)")
-//        print("identityInverse determinant: \(identityInverse.determinant())")
-        
         direction = direction.translated(matrixColumns: newBasis.columns)
+    }
+    
+    private func changeHorizontal(angleChangeRadians: Double) {
+        let directionChange = Vector3d(Point3d(
+            x: sin(angleChangeRadians),
+            y: 0,
+            z: cos(angleChangeRadians)
+        ))
+        
+        changeAngle(directionChange: directionChange)
+    }
+    
+    private func changeVertical(angleChangeRadians: Double) {
+        let directionChange = Vector3d(Point3d(
+            x: 0,
+            y: sin(angleChangeRadians),
+            z: cos(angleChangeRadians)
+        ))
+        
+        changeAngle(directionChange: directionChange)
     }
     
     private func translateBy(_ positionChange: Point3d) {
@@ -183,7 +184,10 @@ struct ContentView: View {
             frameHeight: 1
         )
         
-        let adjustedPositionChange = positionChangeVector.translated(matrixColumns: [camera.horizontalDirection.dimensions, camera.verticalDirection.dimensions, direction.dimensions])
+        let adjustedPositionChange = positionChangeVector.translated(matrixColumns: [
+            camera.horizontalDirection.dimensions,
+            camera.verticalDirection.dimensions,
+            direction.dimensions])
         
         frameCenter = frameCenter.plus(adjustedPositionChange.toPoint3d())
     }
@@ -267,18 +271,24 @@ struct ContentView: View {
                     }
                     
                     
-                    changeAngle(horizontalAngleChangeRadians: xRotation, verticalAngleChangeRadians: 0)
+                    changeHorizontal(angleChangeRadians: xRotation)
                     
                 })
         )
         .onKeyPress(action:  { press in
             
             switch (press.key) {
+            case KeyEquivalent.upArrow:
+                changeVertical(angleChangeRadians: angleChangeRadians)
+                break
+            case KeyEquivalent.downArrow:
+                changeVertical(angleChangeRadians: -angleChangeRadians)
+                break
             case KeyEquivalent.rightArrow:
-                changeAngle(horizontalAngleChangeRadians: -angleChangeRadians, verticalAngleChangeRadians: 0)
+                changeHorizontal(angleChangeRadians: -angleChangeRadians)
                 break
             case KeyEquivalent.leftArrow:
-                changeAngle(horizontalAngleChangeRadians: angleChangeRadians, verticalAngleChangeRadians: 0)
+                changeHorizontal(angleChangeRadians: angleChangeRadians)
                 break
             case KeyEquivalent.space:
                 translateBy(Point3d(x: 0, y: movementAmount, z: 0))
