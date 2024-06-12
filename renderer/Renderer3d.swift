@@ -13,11 +13,8 @@ struct Renderer3d {
     
     private func flatten(point: Point3d, camera: Camera) -> Point2d {
         let direction = camera.direction
-        let y = Vector3d(Point3d(x: 0, y: 1, z: 0))
-        let x = direction.cross(y).normalize()
-        print("direction: \(direction)")
-        print("vy: \(y)")
-        print("vx: \(x)")
+        let y = camera.verticalDirection
+        let x = camera.horizontalDirection
         
         let vectorPoint = Vector3d(point)
         let flattenedPoint = vectorPoint.translated(matrixColumns: [x.dimensions, y.dimensions, direction.dimensions])

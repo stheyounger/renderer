@@ -79,4 +79,8 @@ struct Vector3d {
             Vector3d(dimensions: column).dot(self)
         })
     }
+    
+    func toPoint3d() -> Point3d {
+        return Point3d(x: dimensions[0], y: dimensions[1], z: dimensions[2])
+    }
 }

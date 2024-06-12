@@ -92,13 +92,13 @@ struct Surface2d {
 
 struct ContentView: View {
     
-    @State private var xAngleRadians = 0.0
     private let angleChangeRadians = Double.pi/20
-    
-    @State private var xPosition = 0.0
-    @State private var yPosition = 0.0
-    @State private var zPosition = 0.0
     private let movementAmount = 0.1
+    
+    
+    @State private var frameCenter = Point3d(x: 0, y: 0, z: 0)
+//    @State private var direction = Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: cos(xAngleRadians)))
+    @State private var direction = Vector3d(Point3d(x: 0, y: 0, z: -1))
     
     
     func reorientCoordinates(_ point: Point2d, frameSize: CGSize, camera: Camera) -> Point2d {
@@ -158,12 +158,36 @@ struct ContentView: View {
         
         return Path(path)
     }
+//    kjhkjhg
+    private func changeAngle(angleChangeRadians: Double) {
+        let directionRadians = atan2(direction.toPoint3d().x, direction.toPoint3d().z)
+        print("directionRadians:  \(directionRadians)")
+        
+        let newDirectionRadians = directionRadians + angleChangeRadians
+        print("newDirectionRadians: \(newDirectionRadians)")
+        
+        direction = Vector3d(Point3d(x: sin(newDirectionRadians), y: 0, z: cos(newDirectionRadians))).normalize()
+    }
+    
+    private func translateBy(_ positionChange: Point3d) {
+        let positionChangeVector = Vector3d(positionChange)
+        
+        let positionChangeDirection = positionChangeVector.normalize()
+        let positionChangeMagnitude = positionChangeVector.magnitude()
+        
+        let adjustedPositionChangeDirection = direction.plus(positionChangeDirection).normalize()
+        
+        let adjustedPositionChange = adjustedPositionChangeDirection.times(positionChangeMagnitude)
+            
+        frameCenter = frameCenter.plus(adjustedPositionChange.toPoint3d())
+    }
     
     var body: some View {
         
         let cubeOrigin = Point3d(x: 0, y: 0, z: 1.5)
         let cube = Cube(origin: cubeOrigin, sideLength: 1, color: .green).surface3d
         let cube2 = Cube(origin: Point3d(x: 5, y: 0, z: 2), sideLength: 1, color: .green).surface3d
+        
         
         let xOrigin = Surface3d(triangles: [Triangle(orderedVertices: [
             Point3d(x: 0, y: 0, z: 0),
@@ -184,12 +208,11 @@ struct ContentView: View {
         let renderer = Renderer3d()
         
         return Canvas { context, size in
-            
             let camera = Camera(
 //                frameCenter: Point3d(x: 0, y: 0.5, z: 0),
-                frameCenter: Point3d(x: xPosition, y: yPosition, z: zPosition),
+                frameCenter: frameCenter,
 //                direction: Vector3d(Point3d(x: 0, y: 0, z: -1)),
-                direction: Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: cos(xAngleRadians))),
+                direction: direction,
                 focalLength: 0.8,
                 frameWidth: 1,
                 frameHeight: 1
@@ -255,42 +278,44 @@ struct ContentView: View {
                         return (min(velocity, 20)/20) * (Double.pi/200)
                     }
                     
-                    xAngleRadians += xRotation
+                    
+                    changeAngle(angleChangeRadians: xRotation)
                     
                 })
         )
         .onKeyPress(action:  { press in
+            
             switch (press.key) {
             case KeyEquivalent.rightArrow:
-                xAngleRadians += angleChangeRadians
+                changeAngle(angleChangeRadians: angleChangeRadians)
                 break
             case KeyEquivalent.leftArrow:
-                xAngleRadians -= angleChangeRadians
+                changeAngle(angleChangeRadians: -angleChangeRadians)
                 break
             case KeyEquivalent.space:
-                yPosition += movementAmount
+                translateBy(Point3d(x: 0, y: movementAmount, z: 0))
                 break
             default:
                 switch (press.characters) {
                 case "w":
-                    zPosition -= movementAmount
+                    translateBy(Point3d(x: 0, y: 0, z: -movementAmount))
                     break
                 case "s":
-                    zPosition += movementAmount
+                    translateBy(Point3d(x: 0, y: 0, z: movementAmount))
                     break
                 case "a":
-                    xPosition -= movementAmount
+                    translateBy(Point3d(x: -movementAmount, y: 0, z: 0))
                     break
                 case "d":
-                    xPosition += movementAmount
+                    translateBy(Point3d(x: movementAmount, y: 0, z: 0))
                     break
                 case "c":
-                    yPosition -= movementAmount
+                    translateBy(Point3d(x: 0, y: -movementAmount, z: 0))
                     break
                 default:
                     switch(press.modifiers) {
                     case EventModifiers.control:
-                        yPosition -= movementAmount
+                        translateBy(Point3d(x: 0, y: -movementAmount, z: 0))
                         break
                     default:
                         break

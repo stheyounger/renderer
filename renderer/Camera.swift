@@ -9,10 +9,17 @@ import Foundation
 
 struct Camera {
     let frameCenter: Point3d
-    let focalPoint: Point3d
+    
     let direction: Vector3d
+    let verticalDirection: Vector3d
+    let horizontalDirection: Vector3d
+    
+    let focalPoint: Point3d
+    
     let frameWidth: Double
     let frameHeight: Double
+    
+    
     
     init(
         frameCenter: Point3d,
@@ -21,20 +28,27 @@ struct Camera {
         frameWidth: Double,
         frameHeight: Double
     ) {
-        let normalizedDirection = direction.normalize()
         self.frameCenter = frameCenter
+        
+        let normalizedDirection = direction.normalize()
+        
+        self.direction = normalizedDirection
+        self.verticalDirection = Vector3d(Point3d(x: 0, y: 1, z: 0))
+        self.horizontalDirection = normalizedDirection.cross(verticalDirection).normalize()
+        print("direction: \(direction)")
+        print("verticalDirection: \(verticalDirection)")
+        print("horizontalDirection: \(horizontalDirection)")
+        
         let vectorToFocalPoint = Vector3d(frameCenter).plus(normalizedDirection.times(-focalLength))
         self.focalPoint = Point3d(
             x: vectorToFocalPoint.dimensions[0],
             y: vectorToFocalPoint.dimensions[1],
             z: vectorToFocalPoint.dimensions[2]
         )
-        self.direction = normalizedDirection
-        print("frameCenter: \(self.frameCenter)")
-        print("focalPoint: \(self.focalPoint)")
-        print("direction: \(self.direction)")
         
         self.frameWidth = frameWidth
         self.frameHeight = frameHeight
     }
+    
+    
 }

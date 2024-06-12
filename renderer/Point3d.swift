@@ -23,6 +23,10 @@ struct Point3d {
         return Point3d(x: x - point.x, y: y - point.y, z: z - point.z)
     }
     
+    func plus(_ point: Point3d) -> Point3d {
+        return Point3d(x: x + point.x, y: y + point.y, z: z + point.z)
+    }
+    
     func dimension(_ index: Int) -> Double {
         return [x, y, z][min(index, 2)]
     }
