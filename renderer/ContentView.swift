@@ -173,7 +173,7 @@ struct ContentView: View {
         let vertical = Vector3d(Point3d(x: 0, y: 1, z: 0))
         let notVerticalYet = abs(directionChange.dot(vertical)) < 0.99
         if (notVerticalYet) {
-            changeAngle(directionChange: directionChange)
+//            changeAngle(directionChange: directionChange)
         }
     }
     
