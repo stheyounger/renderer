@@ -14,6 +14,7 @@
 		F702662F2BFE3FB1008A597E /* rendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F702662E2BFE3FB1008A597E /* rendererTests.swift */; };
 		F70266392BFE3FB1008A597E /* rendererUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70266382BFE3FB1008A597E /* rendererUITests.swift */; };
 		F702663B2BFE3FB1008A597E /* rendererUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F702663A2BFE3FB1008A597E /* rendererUITestsLaunchTests.swift */; };
+		F73874142C1A4246007906F5 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73874132C1A4246007906F5 /* Matrix.swift */; };
 		F77D6E142C17A0F600AD6835 /* Point2d.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E132C17A0F600AD6835 /* Point2d.swift */; };
 		F77D6E162C17A12600AD6835 /* Point3d.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E152C17A12600AD6835 /* Point3d.swift */; };
 		F77D6E182C17A16700AD6835 /* Line.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E172C17A16700AD6835 /* Line.swift */; };
@@ -53,6 +54,7 @@
 		F70266342BFE3FB1008A597E /* rendererUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = rendererUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F70266382BFE3FB1008A597E /* rendererUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = rendererUITests.swift; sourceTree = "<group>"; };
 		F702663A2BFE3FB1008A597E /* rendererUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = rendererUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		F73874132C1A4246007906F5 /* Matrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
 		F77D6E132C17A0F600AD6835 /* Point2d.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Point2d.swift; sourceTree = "<group>"; };
 		F77D6E152C17A12600AD6835 /* Point3d.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Point3d.swift; sourceTree = "<group>"; };
 		F77D6E172C17A16700AD6835 /* Line.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Line.swift; sourceTree = "<group>"; };
@@ -126,6 +128,7 @@
 				F77D6E1D2C17A1DC00AD6835 /* Plane.swift */,
 				F77D6E1F2C17A1F200AD6835 /* Renderer3d.swift */,
 				F77D6E212C17A36500AD6835 /* Camera.swift */,
+				F73874132C1A4246007906F5 /* Matrix.swift */,
 			);
 			path = renderer;
 			sourceTree = "<group>";
@@ -290,6 +293,7 @@
 				F77D6E162C17A12600AD6835 /* Point3d.swift in Sources */,
 				F77D6E142C17A0F600AD6835 /* Point2d.swift in Sources */,
 				F77D6E1A2C17A1A400AD6835 /* Triangle.swift in Sources */,
+				F73874142C1A4246007906F5 /* Matrix.swift in Sources */,
 				F702661D2BFE3FAF008A597E /* rendererApp.swift in Sources */,
 				F77D6E222C17A36500AD6835 /* Camera.swift in Sources */,
 				F77D6E1E2C17A1DC00AD6835 /* Plane.swift in Sources */,

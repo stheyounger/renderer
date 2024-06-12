@@ -162,7 +162,12 @@ struct ContentView: View {
         let newBasis = Matrix3x3([newX.dimensions, newY.dimensions, newZ.dimensions]).inverse()
         print("newBasis: \(newBasis)")
         
-        
+//        let identity = Matrix3x3([[1,0,0], [0,1,0], [0,0,1]])
+//        let identityInverse = identity.inverse()
+//        print("identity: \(identity)")
+//        print("identity determinant: \(identity.determinant())")
+//        print("identityInverse: \(identityInverse)")
+//        print("identityInverse determinant: \(identityInverse.determinant())")
         
         direction = direction.translated(matrixColumns: newBasis.columns)
     }
