@@ -50,46 +50,6 @@ struct Cube {
     }
 }
 
-struct Surface3d {
-    let triangles: [Triangle<Point3d>]
-    let color: Color
-    
-    init(triangles: [Triangle<Point3d>], color: Color) {
-        self.triangles = triangles
-        self.color = color
-    }
-    
-    func copyColor(triangles: [Triangle<Point3d>]) -> Surface3d {
-        return Surface3d(triangles: triangles, color: color)
-    }
-    
-    func rotateAroundY(rotationCenter: Point3d, angleRadians: Double) -> Surface3d {
-        return copyColor(triangles: triangles.map { triangle in
-            Triangle(orderedVertices: triangle.orderedVertices.map { vertex in
-                vertex.rotateAroundY(rotationCenter: rotationCenter, angleRadians: angleRadians)
-            })
-        })
-    }
-    func rotateAroundX(rotationCenter: Point3d, angleRadians: Double) -> Surface3d {
-        return copyColor(triangles: triangles.map { triangle in
-            Triangle(orderedVertices: triangle.orderedVertices.map { vertex in
-                vertex.rotateAroundX(rotationCenter: rotationCenter, angleRadians: angleRadians)
-            })
-        })
-    }
-}
-
-struct Surface2d {
-    let triangles: [Triangle<Point2d>]
-    let color: Color
-    
-    init(triangles: [Triangle<Point2d>], color: Color) {
-        self.triangles = triangles
-        self.color = color
-    }
-}
-
-
 struct ContentView: View {
     
     private let angleChangeRadians = Double.pi/20
@@ -158,6 +118,24 @@ struct ContentView: View {
         
         return Path(path)
     }
+    
+    private func polygonToCGPath(_ polygon: Polygon<Point2d>) -> Path {
+        let cgPoints: [CGPoint] = polygon.orderedVertices.map { point in
+            CGPoint(x: point.x, y: point.y)
+        }
+        
+        let path = CGMutablePath()
+        cgPoints.enumerated().forEach { i, point in
+            if (i == 0) {
+                path.move(to: point)
+            } else {
+                path.addLine(to: point)
+            }
+        }
+        
+        return Path(path)
+    }
+    
 //    kjhkjhg
     private func changeAngle(angleChangeRadians: Double) {
         let directionRadians = atan2(direction.toPoint3d().x, direction.toPoint3d().z)
@@ -226,40 +204,24 @@ struct ContentView: View {
                 zOrigin
             ])
             
-            
             let reorientedCoordinates: [Surface2d] = rendering.map { surface in
-                let triangles = surface.triangles
                 let color = surface.color
                 
-                let adjustedTriangles = triangles.map { triangle in
-                    Triangle(orderedVertices: triangle.orderedVertices.map { point in
+                let adjustedPolygons = surface.polygons.map { polygon in
+                    Polygon<Point2d>(orderedVertices: polygon.orderedVertices.map { point in
                         reorientCoordinates(point, frameSize: size, camera: camera)
                     })
                 }
                 
-                return Surface2d(triangles: adjustedTriangles, color: color)
+                return Surface2d(polygons: adjustedPolygons, color: color)
             }
             
             reorientedCoordinates.forEach { surface in
-                surface.triangles.forEach { triangle in
-                    context.fill(triangleToCGPath(triangle), with: .color(surface.color))
+                surface.polygons.forEach { polygon in
+                    context.fill(polygonToCGPath(polygon), with: .color(surface.color))
                 }
             }
-
             
-            let debug = [
-                Point2d(x: 0.1, y: 0.1),
-                Point2d(x: -0.1, y: -0.1),
-                Point2d(x: 0.1, y: -0.1),
-                Point2d(x: -0.1, y: 0.1),
-                Point2d(x: 0.3, y: 0),
-                ]
-            debug.forEach { point in
-                let reorientedPoint = reorientCoordinates(point, frameSize: size, camera: camera)
-                let origin = reorientCoordinates(Point2d(x: 0, y: 0), frameSize: size, camera: camera)
-                
-//                context.stroke(lineToCGPath(Line(start: origin, end: reorientedPoint)), with: .color(.white), lineWidth: 5)
-            }
         }
         .focusable()
         .simultaneousGesture(
@@ -268,10 +230,10 @@ struct ContentView: View {
                     print("it.velocity.width: \(it.velocity.width)")
                     print("it.velocity.height: \(it.velocity.height)")
                     
-                    let xRotation = veloToRadian(velocity: it.velocity.height)
-                    let yRotation = veloToRadian(velocity: it.velocity.width)
+//                    it.translation.width
+                    
+                    let xRotation = veloToRadian(velocity: it.translation.width)
                     print("xRotation: \(xRotation)")
-                    print("yRotation: \(yRotation)")
                     
                     func veloToRadian(velocity: Double) -> Double {
                         return (min(velocity, 20)/20) * (Double.pi/200)

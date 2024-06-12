@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct Point3d {
+struct Point3d: Equatable {
     let x: Double
     let y: Double
     let z: Double
@@ -33,6 +33,10 @@ struct Point3d {
     
     func distance(_ point: Point3d) -> Double {
         return sqrt( pow(x-point.x, 2) + pow(y-point.y, 2) + pow(z-point.z, 2) )
+    }
+    
+    static func == (a: Point3d, b: Point3d) -> Bool {
+        return (a.x == b.x) && (a.y == b.y) && (a.z == b.z)
     }
     
     func rotateAroundZ(rotationCenter: Point3d, angleRadians: Double) -> Point3d {

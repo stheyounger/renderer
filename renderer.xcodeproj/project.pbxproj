@@ -61,6 +61,7 @@
 		F77D6E1D2C17A1DC00AD6835 /* Plane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plane.swift; sourceTree = "<group>"; };
 		F77D6E1F2C17A1F200AD6835 /* Renderer3d.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer3d.swift; sourceTree = "<group>"; };
 		F77D6E212C17A36500AD6835 /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
+		F7C20B342C19487A00B2A1AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +112,7 @@
 		F702661B2BFE3FAF008A597E /* renderer */ = {
 			isa = PBXGroup;
 			children = (
+				F7C20B342C19487A00B2A1AB /* Info.plist */,
 				F702661C2BFE3FAF008A597E /* rendererApp.swift */,
 				F702661E2BFE3FAF008A597E /* ContentView.swift */,
 				F70266202BFE3FB1008A597E /* Assets.xcassets */,
@@ -455,6 +457,7 @@
 				DEVELOPMENT_TEAM = 6A822LVYM9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = renderer/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -492,6 +495,7 @@
 				DEVELOPMENT_TEAM = 6A822LVYM9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = renderer/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
