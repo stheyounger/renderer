@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 struct Point2d {
     let x: Double
     let y: Double
@@ -19,5 +18,9 @@ struct Point2d {
     
     func angleRadians(_ point: Point2d) -> Double {
         return atan2(y - point.y, x - point.x)
+    }
+    
+    func plus(_ other: Point2d) -> Point2d {
+        return Point2d(x: x+other.x, y: y+other.y)
     }
 }

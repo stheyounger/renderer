@@ -24,6 +24,33 @@ struct Polygon<Point> {
     init(orderedVertices: [Point]) {
         self.orderedVertices = orderedVertices
     }
+    
+    func centerPoint2d() -> Point2d {
+        let sumOfPoints = orderedVertices.reduce(Point2d(x: 0, y: 0)) { acc, point in
+            acc.plus(point as! Point2d)
+        }
+        let numberOfPoints = Double(orderedVertices.count)
+        
+        return Point2d(x: (sumOfPoints.x)/numberOfPoints, y: (sumOfPoints.y)/numberOfPoints)
+    }
+    
+    func reorderVertices() -> Polygon<Point2d> {
+        let unorderedVertices: [Point2d] = orderedVertices.map { point in
+                point as! Point2d
+        }
+        
+        let centerOfPolygon = centerPoint2d()
+        
+        return Polygon<Point2d>(orderedVertices: unorderedVertices.sorted(by: { a, b in
+            
+            let angleToA = centerOfPolygon.angleRadians(a)
+            let angleToB = centerOfPolygon.angleRadians(b)
+            
+            let aGoesBeforeB = angleToA < angleToB
+            return aGoesBeforeB
+        }))
+        
+    }
 }
 
 struct Renderer3d {
@@ -101,34 +128,34 @@ struct Renderer3d {
                         point: point,
                         camera: camera
                     )
-                    return firstTry
                     
-//                    if (firstTry != nil) {
-//                        return [firstTry]
-//                    } else {
-//                        let cameraPlane = Plane(normalVector: camera.direction, pointOnPlane: camera.frameCenter)
-//                        
-//                        let otherPoints = triangle.orderedVertices.filter {it in
-//                            it != point
-//                        }
-//                        
-//                        return otherPoints.map { otherPoint in
-//                            let intersectionPoint = cameraPlane.findIntersectionOfLine(line: Line(start: point, end: otherPoint))
-//                            
-//                            if (intersectionPoint != nil) {
-//                                let relativeToFrame = intersectionPoint!.minus(camera.frameCenter)
-//                                
-//                                let flattened = flatten(point: relativeToFrame, camera: camera)
-//                                
-//                                return flattened
-//                            } else {
-//                                return nil
-//                            }
-//                        }.filter({it in it != nil})
-//                    }
+                    if (firstTry != nil) {
+                        return [firstTry]
+                    } else {
+                        let cameraPlane = Plane(normalVector: camera.direction, pointOnPlane: camera.frameCenter)
+                        
+                        let otherPoints = triangle.orderedVertices.filter {it in
+                            it != point
+                        }
+                        
+                        return otherPoints.map { otherPoint in
+                            let intersectionPoint = cameraPlane.findIntersectionOfLine(line: Line(start: point, end: otherPoint))
+                            
+                            if (intersectionPoint != nil) {
+                                let relativeToFrame = intersectionPoint!.minus(camera.frameCenter)
+                                
+                                let flattened = flatten(point: relativeToFrame, camera: camera)
+                                
+                                return flattened
+                            } else {
+                                return nil
+                            }
+                        }.filter({it in it != nil})
+                    }
                 }
                 
                 if (!projectedPoints.contains(where: {point in point==nil})) {
+                    
                     let nonNullTriangle = Polygon(orderedVertices: projectedPoints.map { point in point! })
                     
                     return nonNullTriangle

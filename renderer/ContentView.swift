@@ -345,7 +345,7 @@ struct ContentView: View {
                 let adjustedPolygons = surface.polygons.map { polygon in
                     Polygon<Point2d>(orderedVertices: polygon.orderedVertices.map { point in
                         reorientCoordinates(point, frameSize: size, camera: camera)
-                    })
+                    }).reorderVertices()
                 }
                 
                 return Surface2d(polygons: adjustedPolygons, color: color)
