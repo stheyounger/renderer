@@ -8,15 +8,20 @@
 import SwiftUI
 
 struct Cube {
-    let surface3d: Surface3d
+    
+    let origin: Point3d
+    let sideLength: Double
     let color: Color
+    let orderedVertices: [Point3d]
 
     init (origin: Point3d, sideLength: Double, color: Color) {
+        self.origin = origin
+        self.sideLength = sideLength
         self.color = color
         
         let halfLength = sideLength/2
         
-        let vertices = [
+        self.orderedVertices = [
             Point3d(x: origin.x+halfLength, y: origin.y+halfLength, z: origin.z+halfLength),
             Point3d(x: origin.x+halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
             Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z+halfLength),
@@ -27,37 +32,126 @@ struct Cube {
             Point3d(x: origin.x-halfLength, y: origin.y-halfLength, z: origin.z-halfLength),
             Point3d(x: origin.x-halfLength, y: origin.y+halfLength, z: origin.z-halfLength),
         ]
-        
-        let triangles = [
-            //Top
-            Triangle(vertices[0], vertices[1], vertices[3]),
-            Triangle(vertices[2], vertices[1], vertices[3]),
-            
-            //Bottom
-            Triangle(vertices[4], vertices[5], vertices[7]),
-            Triangle(vertices[6], vertices[5], vertices[7]),
-            
-            //Side
-            Triangle(vertices[0], vertices[4], vertices[5]),
-            Triangle(vertices[0], vertices[1], vertices[5]),
-            
-            //Other Side
-            Triangle(vertices[2], vertices[3], vertices[7]),
-            Triangle(vertices[2], vertices[6], vertices[7]),
+    }
+    
+    func mesh() -> [Surface3d] {
+        let vertices = orderedVertices
+        return [
+            Surface3d(triangles: [
+                //Top
+                Triangle(vertices[0], vertices[1], vertices[3]),
+                Triangle(vertices[2], vertices[1], vertices[3]),
+            ], color: color),
+            Surface3d(triangles: [
+                //Bottom
+                Triangle(vertices[4], vertices[5], vertices[7]),
+                Triangle(vertices[6], vertices[5], vertices[7]),
+            ], color: color),
+            Surface3d(triangles: [
+                //Side
+                Triangle(vertices[0], vertices[4], vertices[5]),
+                Triangle(vertices[0], vertices[1], vertices[5]),
+            ], color: color),
+            Surface3d(triangles: [
+                //Other Side
+                Triangle(vertices[2], vertices[3], vertices[7]),
+                Triangle(vertices[2], vertices[6], vertices[7]),
+            ], color: color),
         ]
+    }
+    
+//    func isColliding(_ other: Object) -> Bool {
+//        return false
+//    }
+}
+
+struct Cuboid {
+    
+    let center: Point3d
+    let xLength: Double
+    let yLength: Double
+    let zLength: Double
+    let color: Color
+    let orderedVertices: [Point3d]
+
+    init (color: Color, center: Point3d, xLength: Double, yLength: Double, zLength: Double) {
+        self.color = color
+        self.center = center
+        self.xLength = xLength
+        self.yLength = yLength
+        self.zLength = zLength
         
-        self.surface3d = Surface3d(triangles: triangles, color: color)
+        let halfXLength = xLength/2
+        let halfYLength = yLength/2
+        let halfZLength = zLength/2
+        
+        self.orderedVertices = [
+            Point3d(x: center.x+halfXLength, y: center.y+halfYLength, z: center.z+halfZLength),
+            Point3d(x: center.x+halfXLength, y: center.y-halfYLength, z: center.z+halfZLength),
+            Point3d(x: center.x-halfXLength, y: center.y-halfYLength, z: center.z+halfZLength),
+            Point3d(x: center.x-halfXLength, y: center.y+halfYLength, z: center.z+halfZLength),
+            
+            Point3d(x: center.x+halfXLength, y: center.y+halfYLength, z: center.z-halfZLength),
+            Point3d(x: center.x+halfXLength, y: center.y-halfYLength, z: center.z-halfZLength),
+            Point3d(x: center.x-halfXLength, y: center.y-halfYLength, z: center.z-halfZLength),
+            Point3d(x: center.x-halfXLength, y: center.y+halfYLength, z: center.z-halfZLength),
+        ]
+    }
+    
+    func mesh() -> [Surface3d] {
+        let vertices = orderedVertices
+        return [
+            Surface3d(triangles: [
+                //Front
+                Triangle(vertices[0], vertices[1], vertices[3]),
+                Triangle(vertices[2], vertices[1], vertices[3]),
+            ], color: color),
+            Surface3d(triangles: [
+                //Back
+                Triangle(vertices[4], vertices[5], vertices[7]),
+                Triangle(vertices[6], vertices[5], vertices[7]),
+            ], color: color),
+            Surface3d(triangles: [
+                //Side
+                Triangle(vertices[0], vertices[4], vertices[5]),
+                Triangle(vertices[0], vertices[1], vertices[5]),
+            ], color: color),
+            Surface3d(triangles: [
+                //Other Side
+                Triangle(vertices[2], vertices[3], vertices[7]),
+                Triangle(vertices[2], vertices[6], vertices[7]),
+            ], color: color),
+            Surface3d(triangles: [
+                //Top
+                Triangle(vertices[0], vertices[3], vertices[4]),
+                Triangle(vertices[7], vertices[3], vertices[4]),
+            ], color: color),
+            Surface3d(triangles: [
+                //Bottom
+                Triangle(vertices[1], vertices[5], vertices[2]),
+                Triangle(vertices[6], vertices[5], vertices[2]),
+            ], color: color),
+        ]
     }
 }
+//asdfasdf
+//protocol Object {
+//    func mesh() -> [Surface3d]
+//    func contains(point: Point3d) -> Bool
+//}
+//
+//extension Object {
+//    func isColliding(_ other: Object) -> Bool {
+//        
+//    }
+//}
 
 struct ContentView: View {
     
     private let angleChangeRadians = Double.pi/20
     private let movementAmount = 0.1
     
-    
     @State private var frameCenter = Point3d(x: 0, y: 0, z: 1)
-//    @State private var direction = Vector3d(Point3d(x: sin(xAngleRadians), y: 0, z: cos(xAngleRadians)))
     @State private var direction = Vector3d(Point3d(x: 0, y: 0, z: -1)).normalize()
     
     
@@ -202,9 +296,13 @@ struct ContentView: View {
     
     var body: some View {
         
-        let cubeOrigin = Point3d(x: 0, y: 0, z: 1.5)
-        let cube = Cube(origin: cubeOrigin, sideLength: 4, color: .green).surface3d
-        let cube2 = Cube(origin: Point3d(x: 5, y: 0, z: 2), sideLength: 1, color: .green).surface3d
+        let platforms = [
+            Cuboid(color: .brown, center: Point3d(x: 0, y: -1, z: 0), xLength: 2, yLength: 0.5, zLength: 2)
+        ]
+        let platformMeshes = platforms.flatMap { platform in platform.mesh() }
+        
+//        let cube = Cube(origin: Point3d(x: 0, y: 0, z: 1.5), sideLength: 4, color: .green).mesh()
+        let cube2 = Cube(origin: Point3d(x: 5, y: 0, z: 2), sideLength: 1, color: .green).mesh()
         
         
         let xOrigin = Surface3d(triangles: [Triangle(orderedVertices: [
@@ -235,9 +333,7 @@ struct ContentView: View {
             )
             
             
-            let rendering: [Surface2d] = renderer.render(camera: camera, objects: [
-                cube,
-                cube2,
+            let rendering: [Surface2d] = renderer.render(camera: camera, objects: platformMeshes + cube2 + [
                 xOrigin,
                 yOrigin,
                 zOrigin
@@ -269,15 +365,12 @@ struct ContentView: View {
                     print("it.velocity.width: \(it.velocity.width)")
                     print("it.velocity.height: \(it.velocity.height)")
                     
-//                    it.translation.width
-                    
                     let xRotation = veloToRadian(velocity: it.translation.width)
                     print("xRotation: \(xRotation)")
                     
                     func veloToRadian(velocity: Double) -> Double {
                         return (min(velocity, 20)/20) * (Double.pi/200)
                     }
-                    
                     
                     changeHorizontal(angleChangeRadians: xRotation)
                     

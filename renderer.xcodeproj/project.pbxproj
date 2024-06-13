@@ -15,6 +15,7 @@
 		F70266392BFE3FB1008A597E /* rendererUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70266382BFE3FB1008A597E /* rendererUITests.swift */; };
 		F702663B2BFE3FB1008A597E /* rendererUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F702663A2BFE3FB1008A597E /* rendererUITestsLaunchTests.swift */; };
 		F73874142C1A4246007906F5 /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73874132C1A4246007906F5 /* Matrix.swift */; };
+		F73874182C1A5E26007906F5 /* Surface3d.swift in Sources */ = {isa = PBXBuildFile; fileRef = F73874172C1A5E26007906F5 /* Surface3d.swift */; };
 		F77D6E142C17A0F600AD6835 /* Point2d.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E132C17A0F600AD6835 /* Point2d.swift */; };
 		F77D6E162C17A12600AD6835 /* Point3d.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E152C17A12600AD6835 /* Point3d.swift */; };
 		F77D6E182C17A16700AD6835 /* Line.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E172C17A16700AD6835 /* Line.swift */; };
@@ -55,6 +56,7 @@
 		F70266382BFE3FB1008A597E /* rendererUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = rendererUITests.swift; sourceTree = "<group>"; };
 		F702663A2BFE3FB1008A597E /* rendererUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = rendererUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		F73874132C1A4246007906F5 /* Matrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
+		F73874172C1A5E26007906F5 /* Surface3d.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Surface3d.swift; sourceTree = "<group>"; };
 		F77D6E132C17A0F600AD6835 /* Point2d.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Point2d.swift; sourceTree = "<group>"; };
 		F77D6E152C17A12600AD6835 /* Point3d.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Point3d.swift; sourceTree = "<group>"; };
 		F77D6E172C17A16700AD6835 /* Line.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Line.swift; sourceTree = "<group>"; };
@@ -114,21 +116,16 @@
 		F702661B2BFE3FAF008A597E /* renderer */ = {
 			isa = PBXGroup;
 			children = (
+				F73874162C1A5DF5007906F5 /* geometry */,
+				F73874152C1A5DB9007906F5 /* math */,
 				F7C20B342C19487A00B2A1AB /* Info.plist */,
 				F702661C2BFE3FAF008A597E /* rendererApp.swift */,
 				F702661E2BFE3FAF008A597E /* ContentView.swift */,
 				F70266202BFE3FB1008A597E /* Assets.xcassets */,
 				F70266222BFE3FB1008A597E /* renderer.entitlements */,
 				F70266232BFE3FB1008A597E /* Preview Content */,
-				F77D6E132C17A0F600AD6835 /* Point2d.swift */,
-				F77D6E152C17A12600AD6835 /* Point3d.swift */,
-				F77D6E172C17A16700AD6835 /* Line.swift */,
-				F77D6E192C17A1A400AD6835 /* Triangle.swift */,
-				F77D6E1B2C17A1C400AD6835 /* Vector3d.swift */,
-				F77D6E1D2C17A1DC00AD6835 /* Plane.swift */,
 				F77D6E1F2C17A1F200AD6835 /* Renderer3d.swift */,
 				F77D6E212C17A36500AD6835 /* Camera.swift */,
-				F73874132C1A4246007906F5 /* Matrix.swift */,
 			);
 			path = renderer;
 			sourceTree = "<group>";
@@ -156,6 +153,28 @@
 				F702663A2BFE3FB1008A597E /* rendererUITestsLaunchTests.swift */,
 			);
 			path = rendererUITests;
+			sourceTree = "<group>";
+		};
+		F73874152C1A5DB9007906F5 /* math */ = {
+			isa = PBXGroup;
+			children = (
+				F73874132C1A4246007906F5 /* Matrix.swift */,
+				F77D6E1B2C17A1C400AD6835 /* Vector3d.swift */,
+			);
+			path = math;
+			sourceTree = "<group>";
+		};
+		F73874162C1A5DF5007906F5 /* geometry */ = {
+			isa = PBXGroup;
+			children = (
+				F77D6E132C17A0F600AD6835 /* Point2d.swift */,
+				F77D6E152C17A12600AD6835 /* Point3d.swift */,
+				F77D6E172C17A16700AD6835 /* Line.swift */,
+				F77D6E192C17A1A400AD6835 /* Triangle.swift */,
+				F77D6E1D2C17A1DC00AD6835 /* Plane.swift */,
+				F73874172C1A5E26007906F5 /* Surface3d.swift */,
+			);
+			path = geometry;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -298,6 +317,7 @@
 				F77D6E222C17A36500AD6835 /* Camera.swift in Sources */,
 				F77D6E1E2C17A1DC00AD6835 /* Plane.swift in Sources */,
 				F77D6E202C17A1F200AD6835 /* Renderer3d.swift in Sources */,
+				F73874182C1A5E26007906F5 /* Surface3d.swift in Sources */,
 				F77D6E182C17A16700AD6835 /* Line.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
