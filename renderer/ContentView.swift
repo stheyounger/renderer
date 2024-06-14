@@ -151,8 +151,13 @@ struct ContentView: View {
     private let angleChangeRadians = Double.pi/20
     private let movementAmount = 0.1
     
-    @State private var frameCenter = Point3d(x: 0, y: 0, z: 1)
-    @State private var direction = Vector3d(Point3d(x: 0, y: 0, z: -1)).normalize()
+    @State private var camera = Camera(
+        frameCenter: Point3d(x: 0, y: 0, z: 1),
+        direction: Vector3d(Point3d(x: 0, y: 0, z: -1)).normalize(),
+        focalLength: 0.8,
+        frameWidth: 1,
+        frameHeight: 1
+    )
     
     
     func reorientCoordinates(_ point: Point2d, frameSize: CGSize, camera: Camera) -> Point2d {
@@ -230,57 +235,29 @@ struct ContentView: View {
         return Path(path)
     }
     
-//    kjhkjhg
-    private func changeAngle(directionChange: Vector3d) {
-        let newZ = directionChange.normalize()
-        let inter = newZ.times(-1).plus(Vector3d(Point3d(x: 0, y: 0.0000001, z: 0)))
-        print("interj: \(inter)")
-        let newX = inter.cross(newZ).normalize()
-        print("newX: \(newX)")
-        
-        let newY = newZ.cross(newX).normalize()
-        print("newY: \(newY)")
-        
-        let newBasis = Matrix3x3([newX.dimensions, newY.dimensions, newZ.dimensions]).inverse()
-        print("newBasis: \(newBasis)")
-        
-        direction = direction.translated(matrixColumns: newBasis.columns)
-    }
-    
     private func changeHorizontal(angleChangeRadians: Double) {
-        let directionChange = Vector3d(Point3d(
-            x: sin(angleChangeRadians),
-            y: 0,
-            z: cos(angleChangeRadians)
-        ))
-        
-        changeAngle(directionChange: directionChange)
+        camera = camera.changeAngle(horizontalAngleChangeRadians: angleChangeRadians, verticalAngleChangeRadians: 0)
     }
     
     private func changeVertical(angleChangeRadians: Double) {
-        let directionChange = Vector3d(Point3d(
-            x: 0,
-            y: sin(angleChangeRadians),
-            z: cos(angleChangeRadians)
-        )).normalize()
+//        camera = camera.changeAngle(horizontalAngleChangeRadians: 0, verticalAngleChangeRadians: angleChangeRadians)
         
-        let vertical = Vector3d(Point3d(x: 0, y: 1, z: 0))
-        let notVerticalYet = abs(directionChange.dot(vertical)) < 0.99
-        if (notVerticalYet) {
-//            changeAngle(directionChange: directionChange)
-        }
+        
+//        let directionChange = Vector3d(Point3d(
+//            x: 0,
+//            y: sin(angleChangeRadians),
+//            z: cos(angleChangeRadians)
+//        )).normalize()
+//        
+//        let vertical = Vector3d(Point3d(x: 0, y: 1, z: 0))
+//        let notVerticalYet = abs(directionChange.dot(vertical)) < 0.99
+//        if (notVerticalYet) {
+////            changeAngle(directionChange: directionChange)
+//        }
     }
     
     private func translateBy(_ positionChange: Point3d) {
         let positionChangeVector = Vector3d(positionChange)
-        
-        let camera = Camera(
-            frameCenter: frameCenter,
-            direction: direction,
-            focalLength: 0.8,
-            frameWidth: 1,
-            frameHeight: 1
-        )
         
         let vert = Vector3d(Point3d(x: 0, y: 1, z: 0))
         let adjustedPositionChange = positionChangeVector.translated(matrixColumns: [
@@ -291,7 +268,7 @@ struct ContentView: View {
 //            direction.dimensions
         ])
         
-        frameCenter = frameCenter.plus(adjustedPositionChange.toPoint3d())
+        camera = camera.changeFrameCenter(frameCenterChange: adjustedPositionChange.toPoint3d())
     }
     
     var body: some View {
@@ -324,14 +301,6 @@ struct ContentView: View {
         let renderer = Renderer3d()
         
         return Canvas { context, size in
-            let camera = Camera(
-                frameCenter: frameCenter,
-                direction: direction,
-                focalLength: 0.8,
-                frameWidth: 1,
-                frameHeight: 1
-            )
-            
             
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: platformMeshes + cube2 + [
                 xOrigin,
