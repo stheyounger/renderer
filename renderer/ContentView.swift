@@ -236,11 +236,11 @@ struct ContentView: View {
     }
     
     private func changeHorizontal(angleChangeRadians: Double) {
-        camera = camera.changeAngle(horizontalAngleChangeRadians: angleChangeRadians, verticalAngleChangeRadians: 0)
+        camera = camera.changeAngle(horizontalAngleChangeRadians: -angleChangeRadians, verticalAngleChangeRadians: 0)
     }
     
     private func changeVertical(angleChangeRadians: Double) {
-//        camera = camera.changeAngle(horizontalAngleChangeRadians: 0, verticalAngleChangeRadians: angleChangeRadians)
+        camera = camera.changeAngle(horizontalAngleChangeRadians: 0, verticalAngleChangeRadians: angleChangeRadians)
         
         
 //        let directionChange = Vector3d(Point3d(
@@ -257,13 +257,16 @@ struct ContentView: View {
     }
     
     private func translateBy(_ positionChange: Point3d) {
-        let positionChangeVector = Vector3d(positionChange)
+        let positionChangeVector = Vector3d(Point3d(x: positionChange.x, y: positionChange.y, z: -positionChange.z))
         
         let vert = Vector3d(Point3d(x: 0, y: 1, z: 0))
+        
+        let forward = vert.cross(camera.horizontalDirection)
+        
         let adjustedPositionChange = positionChangeVector.translated(matrixColumns: [
             camera.horizontalDirection.dimensions,
             vert.dimensions,
-            vert.cross(camera.horizontalDirection).dimensions
+            forward.dimensions
 //            camera.verticalDirection.dimensions,
 //            direction.dimensions
         ])

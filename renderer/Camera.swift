@@ -125,16 +125,16 @@ struct Camera {
 //            z: cos(verticalAngleChangeRadians)
 //        )).normalize()
 //    
-        let newZ = Vector3d(Point3d(
-            x: sin(horizontalAngleChangeRadians),
-            y: 0,
-            z: cos(horizontalAngleChangeRadians)
-        )).normalize()
 //        let newZ = Vector3d(Point3d(
 //            x: sin(horizontalAngleChangeRadians),
-//            y: sin(verticalAngleChangeRadians),
-//            z: cos(horizontalAngleChangeRadians) * cos(verticalAngleChangeRadians)
+//            y: 0,
+//            z: cos(horizontalAngleChangeRadians)
 //        )).normalize()
+        let newZ = Vector3d(Point3d(
+            x: sin(horizontalAngleChangeRadians),
+            y: sin(verticalAngleChangeRadians),
+            z: cos(horizontalAngleChangeRadians) * cos(verticalAngleChangeRadians)
+        )).normalize()
     
         let newBasisOrientation = Camera.createOrientationFromZDirection(zDirection: newZ, previousOrientation: orientation)
         
