@@ -23,7 +23,7 @@ struct Plane {
         
         let distanceToIntersection = (normalVector.dot(Vector3d(pointOnPlane)) - normalVector.dot(lineOrigin)) / normalVector.dot(lineDirection)
         
-        let lineLength = line.start.distance(line.end)
+        print("distanceToIntersection: \(distanceToIntersection)")
         
         let vectorToIntersection = lineOrigin.plus(lineDirection.times(distanceToIntersection))
         

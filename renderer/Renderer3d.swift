@@ -140,16 +140,21 @@ struct Renderer3d {
             
             let trianglesInFrame: [Triangle<Point3d>] = object.triangles.compactMap { triangle in
                 
-                let triangleIsInFrame = triangle.orderedVertices.reduce(false, { acc, point in
-                    return acc || isPointInFrontOfCamera(point: point, camera: camera)
+//                let anyVerticesAreInFrame = triangle.orderedVertices.reduce(false, { acc, point in
+//                    return acc || isPointInFrontOfCamera(point: point, camera: camera)
+//                })
+                let allVerticesAreInFrame = triangle.orderedVertices.reduce(true, { acc, point in
+                    return acc && isPointInFrontOfCamera(point: point, camera: camera)
                 })
                 
-                return if (triangleIsInFrame) {
+                return if (allVerticesAreInFrame) {
                     triangle
                 } else {
                     nil as Triangle<Point3d>?
                 }
             }
+            print("total triangles In object: \(object.triangles.count)")
+            print("number of triangles In Frame: \(trianglesInFrame.count)")
             
             let projection: [Triangle<ProjectedPoint>] = trianglesInFrame.map { triangle in
                 Triangle(orderedVertices: triangle.orderedVertices.map { point in
@@ -160,84 +165,42 @@ struct Renderer3d {
                 })
             }
             
-            let asdf: [Polygon] = projection.map { triangleOfProjectedPoints in
+            let polygons: [Polygon] = projection.map { triangleOfProjectedPoints in
                 
-                let polygonPoints: [Point2d] = triangleOfProjectedPoints.orderedVertices.flatMap { projectedPoint in
+                let projectedPointsInThisTriangle = triangleOfProjectedPoints.orderedVertices
+                
+                let polygonPoints: [Point2d] = projectedPointsInThisTriangle.flatMap { projectedPoint in
                     let point = projectedPoint.point
                     
                     if (projectedPoint.dotProduct < 0) {
                         return [point!]
                     } else if (projectedPoint.dotProduct > 0) {
-                        return triangleOfProjectedPoints.orderedVertices.compactMap { otherProjectedPoint in
-                            let otherPoint = otherProjectedPoint.point
-                            if (otherPoint == point) {
-                                return nil as Point2d?
-                            } else {
-                                let rayDirection = Vector2d(otherPoint!.minus(point!)).normalize()
-                                
-                                let largestDistanceOnScreen = hypot(camera.frameWidth, camera.frameHeight)
-                                
-                                let vectorFromOtherToFalselyProjected = rayDirection.times(largestDistanceOnScreen)
-                                
-                                return vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!)
-                            }
-                        }
+                        return []
+//                        return projectedPointsInThisTriangle.compactMap { otherProjectedPoint in
+//                            let otherPoint = otherProjectedPoint.point
+//                            
+//                            if (otherPoint != point) {
+//                                let rayDirection = Vector2d(otherPoint!.minus(point!)).times(-1).normalize()
+//                                
+//                                let largestDistanceOnScreen = hypot(camera.frameWidth, camera.frameHeight)
+//                                
+//                                let vectorFromOtherToFalselyProjected = rayDirection.times(largestDistanceOnScreen)
+//                                
+//                                return vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!)
+//                            } else {
+//                                return nil as Point2d?
+//                            }
+//                        }
                     } else {
-                        return [Point2d(x: 0, y: 0)]
+                        return []
                     }
                 }
                 
                 return Polygon(orderedVertices: polygonPoints)
             }
             
-            return Surface2d(polygons: asdf, color: object.color)
+            return Surface2d(polygons: polygons, color: object.color)
             
-//            let projection: [Polygon<Point2d>] = object.triangles.compactMap { triangle in
-//                
-//                let triangleIsInFrame = triangle.orderedVertices.reduce(false, { acc, point in
-//                    return acc || isPointInFrontOfCamera(point: point, camera: camera)
-//                })
-//                
-//                if (triangleIsInFrame) {
-//                    let projectedPoints = triangle.orderedVertices.map { point in
-//                        return projectPoint(
-//                            point: point,
-//                            camera: camera
-//                        )
-//                    }
-//                    
-//                    let polygonPoints: [Point2d] = projectedPoints.flatMap { projectedPoint in
-//                        let point = projectedPoint.point
-//                        
-//                        return if (projectedPoint.dotProduct < 0) {
-//                            [point!]
-//                        } else if (projectedPoint.dotProduct > 0) {
-//                            projectedPoints.compactMap { otherProjectedPoint in
-//                                let otherPoint = otherProjectedPoint.point
-//                                if (otherPoint == point) {
-//                                    nil as Point2d?
-//                                } else {
-//                                    let rayDirection = Vector2d(otherPoint!.minus(point!)).normalize()
-//                                    
-//                                    let largestDistanceOnScreen = hypot(camera.frameWidth, camera.frameHeight)
-//                                    
-//                                    let vectorFromOtherToFalselyProjected = rayDirection.times(largestDistanceOnScreen)
-//                                    
-//                                    vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!)
-//                                }
-//                            }
-//                        } else {
-//                            [Point2d(x: 0, y: 0)]
-//                        }
-//                    }
-//                    
-//                    return Polygon(orderedVertices: polygonPoints)
-//                } else {
-//                    return nil
-//                }
-//            }
-//            
-//            return Surface2d(polygons: projection, color: object.color)
         }
     }
 }
