@@ -98,10 +98,13 @@ struct Renderer3d {
         let ray = Line(start: camera.focalPoint, end: point)
         
         let intersectionPoint: Point3d? = cameraPlane.findIntersectionOfLine(line: ray)
-        let flattened: Point2d? = if (intersectionPoint != nil) {
-            flatten(point: intersectionPoint!, camera: camera)
+        let flattened: Point2d?;
+        if (intersectionPoint != nil) {
+            let relativeToFrame = intersectionPoint!.minus(camera.frameCenter)
+            
+            flattened = flatten(point: relativeToFrame, camera: camera)
         } else {
-            nil
+            flattened = nil
         }
         
         let rayDirection = Vector3d(ray.start.minus(ray.end)).normalize()
