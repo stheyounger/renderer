@@ -98,6 +98,7 @@ struct Renderer3d {
         let ray = Line(start: camera.focalPoint, end: point)
         
         let intersectionPoint: Point3d? = cameraPlane.findIntersectionOfLine(line: ray)
+        
         let flattened: Point2d?;
         if (intersectionPoint != nil) {
             let relativeToFrame = intersectionPoint!.minus(camera.frameCenter)
@@ -143,14 +144,11 @@ struct Renderer3d {
             
             let trianglesInFrame: [Triangle<Point3d>] = object.triangles.compactMap { triangle in
                 
-//                let anyVerticesAreInFrame = triangle.orderedVertices.reduce(false, { acc, point in
-//                    return acc || isPointInFrontOfCamera(point: point, camera: camera)
-//                })
-                let allVerticesAreInFrame = triangle.orderedVertices.reduce(true, { acc, point in
-                    return acc && isPointInFrontOfCamera(point: point, camera: camera)
+                let anyVerticesAreInFrame = triangle.orderedVertices.reduce(false, { acc, point in
+                    return acc || isPointInFrontOfCamera(point: point, camera: camera)
                 })
                 
-                return if (allVerticesAreInFrame) {
+                return if (anyVerticesAreInFrame) {
                     triangle
                 } else {
                     nil as Triangle<Point3d>?
@@ -178,22 +176,22 @@ struct Renderer3d {
                     if (projectedPoint.dotProduct < 0) {
                         return [point!]
                     } else if (projectedPoint.dotProduct > 0) {
-                        return []
-//                        return projectedPointsInThisTriangle.compactMap { otherProjectedPoint in
-//                            let otherPoint = otherProjectedPoint.point
-//                            
-//                            if (otherPoint != point) {
-//                                let rayDirection = Vector2d(otherPoint!.minus(point!)).times(-1).normalize()
-//                                
-//                                let largestDistanceOnScreen = hypot(camera.frameWidth, camera.frameHeight)
-//                                
-//                                let vectorFromOtherToFalselyProjected = rayDirection.times(largestDistanceOnScreen)
-//                                
-//                                return vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!)
-//                            } else {
-//                                return nil as Point2d?
-//                            }
-//                        }
+//                        return []
+                        return projectedPointsInThisTriangle.compactMap { otherProjectedPoint in
+                            let otherPoint = otherProjectedPoint.point
+                            
+                            if (otherPoint != point) {
+                                let rayDirection = Vector2d(otherPoint!.minus(point!)).normalize()
+                                
+                                let largestDistanceOnScreen = hypot(camera.frameWidth, camera.frameHeight)
+                                
+                                let vectorFromOtherToFalselyProjected = rayDirection.times(largestDistanceOnScreen)
+                                
+                                return vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!)
+                            } else {
+                                return nil as Point2d?
+                            }
+                        }
                     } else {
                         return []
                     }

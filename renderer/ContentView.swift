@@ -316,11 +316,14 @@ struct ContentView: View {
         
         return Canvas { context, size in
             
-            let rendering: [Surface2d] = renderer.render(camera: camera, objects: platformMeshes + cube2 + [
-                xOrigin,
-                yOrigin,
-                zOrigin
-            ])
+            let rendering: [Surface2d] = renderer.render(camera: camera, objects: 
+//                platformMeshes + cube2 + [
+                                                         [
+                    xOrigin,
+                    yOrigin,
+                    zOrigin
+                ]
+            )
             
             let reorientedCoordinates: [Surface2d] = rendering.map { surface in
                 let color = surface.color
