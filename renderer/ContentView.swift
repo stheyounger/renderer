@@ -145,7 +145,7 @@ struct Cuboid {
 //        
 //    }
 //}
-
+//asdfagre
 struct ContentView: View {
     
     private let angleChangeRadians = Double.pi/20
@@ -154,7 +154,7 @@ struct ContentView: View {
     @State private var camera = Camera(
         frameCenter: Point3d(x: 0, y: 0, z: 1),
         direction: Vector3d(Point3d(x: 0, y: 0, z: -1)).normalize(),
-        focalLength: 0.8,
+        fovRadians: 170/180 * Double.pi,
         frameWidth: 1,
         frameHeight: 1
     )
@@ -180,7 +180,19 @@ struct ContentView: View {
         
         print("cameraToWindowConversion: \(cameraToWindowConversion)")
         func stretched(_ point: Point2d) -> Point2d {
-            let stretched = Point2d(x: point.x * cameraToWindowConversion, y: point.y * cameraToWindowConversion)
+            
+            func handleInfinity(_ n: Double) -> Double {
+                return if (n == Double.infinity || n == Double.nan || n == Double.signalingNaN) {
+                    Double.greatestFiniteMagnitude
+                } else {
+                    n
+                }
+            }
+            
+            let stretched = Point2d(
+                x: handleInfinity(point.x * cameraToWindowConversion),
+                y: handleInfinity(point.y * cameraToWindowConversion)
+            )
             
             print("preStretch: \(point) postStretch: \(stretched)")
             
@@ -241,7 +253,6 @@ struct ContentView: View {
     
     private func changeVertical(angleChangeRadians: Double) {
         camera = camera.changeAngle(horizontalAngleChangeRadians: 0, verticalAngleChangeRadians: angleChangeRadians)
-        
         
 //        let directionChange = Vector3d(Point3d(
 //            x: 0,

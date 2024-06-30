@@ -28,20 +28,21 @@ struct Camera {
     let orientation: Orientation3d
     
     let focalPoint: Point3d
+    let fovRadians: Double
     
     let frameWidth: Double
     let frameHeight: Double
     
     init(
         frameCenter: Point3d,
-        
         orientation: Orientation3d,
-        
-        focalLength: Double,
-        
+        fovRadians: Double,
         frameWidth: Double,
         frameHeight: Double
     ) {
+        self.fovRadians = fovRadians
+        let focalLength = cos(fovRadians/2) * frameWidth
+    
         self.frameCenter = frameCenter
         
         self.orientation = orientation
@@ -59,10 +60,37 @@ struct Camera {
         self.frameHeight = frameHeight
     }
     
+//    init(
+//        frameCenter: Point3d,
+//        
+//        orientation: Orientation3d,
+//        
+//        focalLength: Double,
+//        
+//        frameWidth: Double,
+//        frameHeight: Double
+//    ) {
+//        self.frameCenter = frameCenter
+//        
+//        self.orientation = orientation
+//        self.direction = orientation.zDirection
+//        self.verticalDirection = orientation.yDirection
+//        self.horizontalDirection = orientation.xDirection
+//        
+//        self.focalPoint = Camera.createFocalPointFromFocalLength(
+//            focalLength: focalLength,
+//            frameCenter: frameCenter,
+//            normalizedDirection: orientation.zDirection
+//        )
+//        
+//        self.frameWidth = frameWidth
+//        self.frameHeight = frameHeight
+//    }
+    
     init(
         frameCenter: Point3d,
         direction: Vector3d,
-        focalLength: Double,
+        fovRadians: Double,
         frameWidth: Double,
         frameHeight: Double
     ) {
@@ -87,6 +115,9 @@ struct Camera {
         print("horizontalDirection: \(horizontalDirection)")
         print("verticalDirection: \(verticalDirection)")
         
+        
+        self.fovRadians = fovRadians
+        let focalLength = cos(fovRadians/2) * frameWidth
         self.focalPoint = Camera.createFocalPointFromFocalLength(
             focalLength: focalLength,
             frameCenter: frameCenter,
@@ -130,6 +161,7 @@ struct Camera {
 //            y: 0,
 //            z: cos(horizontalAngleChangeRadians)
 //        )).normalize()
+        
         let newZ = Vector3d(Point3d(
             x: sin(horizontalAngleChangeRadians),
             y: sin(verticalAngleChangeRadians),
@@ -145,11 +177,14 @@ struct Camera {
         ]).inverse()
 
         let forward = orientation.zDirection.translated(matrixColumns: newBasis.columns)
+        let horizontal = Camera.createOrientationFromZDirection(zDirection: forward, previousOrientation: orientation).xDirection
+        let vertical = orientation.yDirection.translated(matrixColumns: newBasis.columns)
         
         return Camera(
             frameCenter: frameCenter,
-            orientation: Camera.createOrientationFromZDirection(zDirection: forward, previousOrientation: orientation),
-            focalLength: focalPoint.distance(frameCenter),
+//            orientation: Camera.createOrientationFromZDirection(zDirection: forward, previousOrientation: orientation),
+            orientation: Orientation3d(xDirection: horizontal, yDirection: vertical, zDirection: forward),
+            fovRadians: fovRadians,
             frameWidth: frameWidth,
             frameHeight: frameHeight
         )
@@ -160,7 +195,7 @@ struct Camera {
         return Camera (
             frameCenter: frameCenter.plus(frameCenterChange),
             direction: orientation.zDirection,
-            focalLength: focalPoint.distance(frameCenter),
+            fovRadians: fovRadians,
             frameWidth: frameWidth,
             frameHeight: frameHeight
         )
