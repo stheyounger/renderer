@@ -23,7 +23,7 @@ struct ContentView: View {
         frameHeight: 1
     )
     
-    
+    @State private var displayMode = DrawToScreen.DisplayMode.Wireframe
     
     private func changeHorizontal(angleChangeRadians: Double) {
         camera = camera.changeAngle(horizontalAngleChangeRadians: -angleChangeRadians, verticalAngleChangeRadians: 0)
@@ -96,7 +96,8 @@ struct ContentView: View {
                 rendering: rendering,
                 camera: camera,
                 frameSize: size,
-                context: context
+                context: context,
+                displayMode: displayMode
             )
             
         }
@@ -172,7 +173,7 @@ struct ContentView: View {
             gamepad.onAppear(perform: {
                 print("hi there")
                 
-                gamepad.vc.virtualController!.controller!.gamepad?.valueChangedHandler = { (value, fdas) in
+                gamepad.vc.virtualController!.controller!.gamepad!.valueChangedHandler = { (value, fdas) in
                     let controller = value.controller?.extendedGamepad!
                     
                     let leftStick = controller?.leftThumbstick
@@ -188,13 +189,27 @@ struct ContentView: View {
                         upDown = 0
                     }
                     
-                    translateBy(Point3d(x: leftX, y: upDown, z: leftY))
-                    
+                    let movementSpeedMultiplier = 0.3
+                    translateBy(Point3d(
+                        x: leftX * movementSpeedMultiplier,
+                        y: upDown,
+                        z: leftY * movementSpeedMultiplier
+                    ))
                     
                     let rightStick = controller?.rightThumbstick
                     let rightX = Double(rightStick?.xAxis.value ?? 0)
                     
-                    changeHorizontal(angleChangeRadians: -angleChangeRadians * rightX)
+                    let rotationSpeedMultiplier = 0.08
+                    changeHorizontal(angleChangeRadians: rotationSpeedMultiplier * -rightX)
+                    
+                    if (controller!.buttonB.isPressed == true) {
+                        displayMode = switch (displayMode) {
+                        case .Wireframe:
+                                .Surface
+                        case .Surface:
+                                .Wireframe
+                        }
+                    }
                 }
             })
         }

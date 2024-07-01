@@ -96,7 +96,12 @@ struct DrawToScreen {
         return Path(path)
     }
     
-    func draw(rendering: [Surface2d], camera: Camera, frameSize: CGSize, context: GraphicsContext) {
+    enum DisplayMode {
+        case Wireframe
+        case Surface
+    }
+    
+    func draw(rendering: [Surface2d], camera: Camera, frameSize: CGSize, context: GraphicsContext, displayMode: DisplayMode) {
         let reorientedCoordinates: [Surface2d] = rendering.map { surface in
             let color = surface.color
             
@@ -111,9 +116,14 @@ struct DrawToScreen {
         
         reorientedCoordinates.forEach { surface in
             surface.polygons.forEach { polygon in
-                let path = Polygon(orderedVertices: polygon.orderedVertices + [polygon.orderedVertices.first!])
-//                context.stroke(polygonToCGPath(path), with: .color(surface.color))
-                context.fill(polygonToCGPath(polygon), with: .color(surface.color))
+                switch (displayMode) {
+                case .Wireframe:
+                    let path = Polygon(orderedVertices: polygon.orderedVertices + [polygon.orderedVertices.first!])
+                    context.stroke(polygonToCGPath(path), with: .color(surface.color))
+                    
+                case .Surface:
+                    context.fill(polygonToCGPath(polygon), with: .color(surface.color))
+                }
             }
         }
     }
