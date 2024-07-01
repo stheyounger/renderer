@@ -106,23 +106,72 @@ struct DrawToScreen {
             let color = surface.color
             
             let adjustedPolygons = surface.polygons.map { polygon in
-                Polygon<Point2d>(orderedVertices: polygon.orderedVertices.map { point in
-                    reorientCoordinates(point, frameSize: frameSize, camera: camera)
-                }).reorderVertices()
+                Polygon<RenderedPoint>(orderedVertices: polygon.orderedVertices.map { point in
+                    RenderedPoint(
+                        point: reorientCoordinates(point.point, frameSize: frameSize, camera: camera),
+                        depth: point.depth
+                    )
+                })
             }
             
             return Surface2d(polygons: adjustedPolygons, color: color)
         }
         
-        reorientedCoordinates.forEach { surface in
-            surface.polygons.forEach { polygon in
-                switch (displayMode) {
-                case .Wireframe:
-                    let path = Polygon(orderedVertices: polygon.orderedVertices + [polygon.orderedVertices.first!])
-                    context.stroke(polygonToCGPath(path), with: .color(surface.color))
-                    
-                case .Surface:
-                    context.fill(polygonToCGPath(polygon), with: .color(surface.color))
+        
+    
+        switch (displayMode) {
+        case .Wireframe:
+            
+            struct Surface2dLine <Point> {
+                let color: Color
+                let line: Line<Point>
+                
+                init(color: Color, line: Line<Point>) {
+                    self.color = color
+                    self.line = line
+                }
+            }
+            
+            let allLines = reorientedCoordinates.flatMap { surface in
+                surface.polygons.flatMap { polygon in
+                    polygon.orderedVertices.enumerated().map { i, vertex in
+                        
+                        let nextVertexIndex: Int;
+                        if (i+1 < polygon.orderedVertices.count) {
+                            nextVertexIndex = i + 1
+                        } else {
+                            nextVertexIndex = 0
+                        }
+                        let nextVertex = polygon.orderedVertices[nextVertexIndex]
+                        
+                        return Surface2dLine(color: surface.color, line: Line(start: vertex, end: nextVertex))
+                    }
+                }
+            }
+            
+            let linesSortedByDepth = allLines.sorted(by: { a, b in
+                
+                let aDepth = a.line.start.depth + a.line.end.depth
+                let bDepth = b.line.start.depth + b.line.end.depth
+                
+                let aGoesBeforeB = aDepth > bDepth
+                return aGoesBeforeB
+            })
+            
+            
+            linesSortedByDepth.forEach { surfaceLine in
+                let line = Line(start: surfaceLine.line.start.point, end: surfaceLine.line.end.point)
+                let depth = surfaceLine.line.start.depth + surfaceLine.line.end.depth
+                context.stroke(lineToCGPath(line), with: .color(surfaceLine.color), lineWidth: depth)
+            }
+            
+        case .Surface:
+            reorientedCoordinates.forEach { surface in
+                surface.polygons.forEach { polygon in
+                    let pointPolygon = Polygon(orderedVertices: polygon.orderedVertices.map { pointPlus in
+                        pointPlus.point
+                    })
+                    context.fill(polygonToCGPath(pointPolygon.reorderVertices()), with: .color(surface.color))
                 }
             }
         }

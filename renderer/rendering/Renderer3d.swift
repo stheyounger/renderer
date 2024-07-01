@@ -8,11 +8,22 @@
 import Foundation
 import SwiftUI
 
+
+struct RenderedPoint {
+    let point: Point2d
+    let depth: Double
+    
+    init(point: Point2d, depth: Double) {
+        self.point = point
+        self.depth = depth
+    }
+}
+
 struct Surface2d {
-    let polygons: [Polygon<Point2d>]
+    let polygons: [Polygon<RenderedPoint>]
     let color: Color
     
-    init(polygons: [Polygon<Point2d>], color: Color) {
+    init(polygons: [Polygon<RenderedPoint>], color: Color) {
         self.polygons = polygons
         self.color = color
     }
@@ -49,10 +60,12 @@ struct Renderer3d {
     struct ProjectedPoint {
         let point: Point2d?
         let dotProduct: Double
+        let depth: Double
         
-        init(point: Point2d?, dotProduct: Double) {
+        init(point: Point2d?, dotProduct: Double, depth: Double) {
             self.point = point
             self.dotProduct = dotProduct
+            self.depth = depth
         }
     }
     
@@ -77,11 +90,12 @@ struct Renderer3d {
         
         return ProjectedPoint(
             point: flattened,
-            dotProduct: camera.direction.dot(rayDirection)
+            dotProduct: camera.direction.dot(rayDirection),
+            depth: camera.frameCenter.distance(point)
         )
     }
     
-    private func renderTriangle(triangle: Triangle<Point3d>, camera: Camera) -> Polygon<Point2d>? {
+    private func renderTriangle(triangle: Triangle<Point3d>, camera: Camera) -> Polygon<RenderedPoint>? {
         
         let numberOfVerticesInFrame = triangle.orderedVertices.reduce(0, { acc, point in
             if (isPointInFrontOfCamera(point: point, camera: camera)) {
@@ -103,11 +117,11 @@ struct Renderer3d {
                 )
             }
             
-            let polygonPoints: [Point2d] = projectedPoints.flatMap { projectedPoint in
+            let polygonPoints: [RenderedPoint] = projectedPoints.flatMap { projectedPoint in
                 let point = projectedPoint.point
                 
                 if (projectedPoint.dotProduct < 0) {
-                    return [point!]
+                    return [RenderedPoint(point: projectedPoint.point!, depth: projectedPoint.depth)]
                 } else if (projectedPoint.dotProduct > 0) {
                     
                     return projectedPoints.compactMap { otherProjectedPoint in
@@ -121,14 +135,17 @@ struct Renderer3d {
                                 
                                 let vectorFromOtherToFalselyProjected = rayDirection.times(largestDistanceOnScreen)
                                 
-                                return vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!)
+                                return RenderedPoint(
+                                    point: vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!),
+                                    depth: projectedPoint.depth
+                                )
                             } else {
-                                return nil as Point2d?
+                                return nil as RenderedPoint?
                             }
                         } else if (otherProjectedPoint.dotProduct > 0) {
-                            return nil as Point2d?
+                            return nil as RenderedPoint?
                         } else {
-                            return nil as Point2d?
+                            return nil as RenderedPoint?
                         }
                     }
                 } else {
@@ -140,35 +157,34 @@ struct Renderer3d {
             return Polygon(orderedVertices: polygonPoints)
             
         } else {
-            return nil as Polygon<Point2d>?
+            return nil as Polygon<RenderedPoint>?
         }
     }
     
     func render(camera: Camera, objects: [Surface3d]) -> [Surface2d] {
         
-        let surfacesOrderedByDepth = objects.sorted(by: { A, B in
-            
-            func calcDepth(_ surface: Surface3d) -> Double {
-                let sumOfCenters = surface.triangles.reduce(Point3d(x: 0, y: 0, z: 0)) { acc, triangle in
-                    acc.plus(triangle.centerPoint3d()!)
-                }
-                
-                let numberOfTriangles = Double(surface.triangles.count)
-                let centerOfSurface = Point3d(x: sumOfCenters.x/numberOfTriangles, y: sumOfCenters.y/numberOfTriangles, z: sumOfCenters.z/numberOfTriangles)
-                
-                let distanceToCameraCenter = camera.frameCenter.distance(centerOfSurface)
-                return distanceToCameraCenter
-            }
-            
-            let aIsBeforeB = calcDepth(A) > calcDepth(B)
-            
-            return aIsBeforeB
-        })
+//        let surfacesOrderedByDepth = objects.sorted(by: { A, B in
+//            
+//            func calcDepth(_ surface: Surface3d) -> Double {
+//                let sumOfCenters = surface.triangles.reduce(Point3d(x: 0, y: 0, z: 0)) { acc, triangle in
+//                    acc.plus(triangle.centerPoint3d()!)
+//                }
+//                
+//                let numberOfTriangles = Double(surface.triangles.count)
+//                let centerOfSurface = Point3d(x: sumOfCenters.x/numberOfTriangles, y: sumOfCenters.y/numberOfTriangles, z: sumOfCenters.z/numberOfTriangles)
+//                
+//                let distanceToCameraCenter = camera.frameCenter.distance(centerOfSurface)
+//                return distanceToCameraCenter
+//            }
+//            
+//            let aIsBeforeB = calcDepth(A) > calcDepth(B)
+//            
+//            return aIsBeforeB
+//        })
         
         
         
-        return surfacesOrderedByDepth.map { object in
-            
+        return objects.map { object in
             let renderedPolygons = object.triangles.compactMap { triangle in
                 renderTriangle(triangle: triangle, camera: camera)
             }
