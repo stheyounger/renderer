@@ -116,6 +116,54 @@ struct Renderer3d {
         )
     }
     
+    private func renderTriangle(triangle: Triangle<Point3d>, camera: Camera) -> Polygon<Point2d>? {
+        
+        let anyVerticesAreInFrame = triangle.orderedVertices.reduce(false, { acc, point in
+            return acc || isPointInFrontOfCamera(point: point, camera: camera)
+        })
+        
+        if (anyVerticesAreInFrame) {
+            let triangleOfProjectedPoints = Triangle(orderedVertices: triangle.orderedVertices.map { point in
+                return projectPoint(
+                    point: point,
+                    camera: camera
+                )
+            })
+                
+            let projectedPointsInThisTriangle = triangleOfProjectedPoints.orderedVertices
+            
+            let polygonPoints: [Point2d] = projectedPointsInThisTriangle.flatMap { projectedPoint in
+                let point = projectedPoint.point
+                
+                if (projectedPoint.dotProduct < 0) {
+                    return [point!]
+                } else if (projectedPoint.dotProduct > 0) {
+                    return projectedPointsInThisTriangle.compactMap { otherProjectedPoint in
+                        let otherPoint = otherProjectedPoint.point
+                        
+                        if (otherPoint != point) {
+                            let rayDirection = Vector2d(otherPoint!.minus(point!)).normalize()
+                            
+                            let largestDistanceOnScreen = hypot(camera.frameWidth, camera.frameHeight)
+                            
+                            let vectorFromOtherToFalselyProjected = rayDirection.times(largestDistanceOnScreen)
+                            
+                            return vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!)
+                        } else {
+                            return nil as Point2d?
+                        }
+                    }
+                } else {
+                    return []
+                }
+            }
+            
+            return Polygon(orderedVertices: polygonPoints)
+        } else {
+            return nil as Polygon<Point2d>?
+        }
+    }
+    
     func render(camera: Camera, objects: [Surface3d]) -> [Surface2d] {
         
         let surfacesOrderedByDepth = objects.sorted(by: { A, B in
@@ -141,67 +189,11 @@ struct Renderer3d {
         
         return surfacesOrderedByDepth.map { object in
             
-            
-            let trianglesInFrame: [Triangle<Point3d>] = object.triangles.compactMap { triangle in
-                
-                let anyVerticesAreInFrame = triangle.orderedVertices.reduce(false, { acc, point in
-                    return acc || isPointInFrontOfCamera(point: point, camera: camera)
-                })
-                
-                return if (anyVerticesAreInFrame) {
-                    triangle
-                } else {
-                    nil as Triangle<Point3d>?
-                }
-            }
-            print("total triangles In object: \(object.triangles.count)")
-            print("number of triangles In Frame: \(trianglesInFrame.count)")
-            
-            let projection: [Triangle<ProjectedPoint>] = trianglesInFrame.map { triangle in
-                Triangle(orderedVertices: triangle.orderedVertices.map { point in
-                    return projectPoint(
-                        point: point,
-                        camera: camera
-                    )
-                })
+            let renderedPolygons = object.triangles.compactMap { triangle in
+                renderTriangle(triangle: triangle, camera: camera)
             }
             
-            let polygons: [Polygon] = projection.map { triangleOfProjectedPoints in
-                
-                let projectedPointsInThisTriangle = triangleOfProjectedPoints.orderedVertices
-                
-                let polygonPoints: [Point2d] = projectedPointsInThisTriangle.flatMap { projectedPoint in
-                    let point = projectedPoint.point
-                    
-                    if (projectedPoint.dotProduct < 0) {
-                        return [point!]
-                    } else if (projectedPoint.dotProduct > 0) {
-//                        return []
-                        return projectedPointsInThisTriangle.compactMap { otherProjectedPoint in
-                            let otherPoint = otherProjectedPoint.point
-                            
-                            if (otherPoint != point) {
-                                let rayDirection = Vector2d(otherPoint!.minus(point!)).normalize()
-                                
-                                let largestDistanceOnScreen = hypot(camera.frameWidth, camera.frameHeight)
-                                
-                                let vectorFromOtherToFalselyProjected = rayDirection.times(largestDistanceOnScreen)
-                                
-                                return vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!)
-                            } else {
-                                return nil as Point2d?
-                            }
-                        }
-                    } else {
-                        return []
-                    }
-                }
-                
-                return Polygon(orderedVertices: polygonPoints)
-            }
-            
-            return Surface2d(polygons: polygons, color: object.color)
-            
+            return Surface2d(polygons: renderedPolygons, color: object.color)
         }
     }
 }

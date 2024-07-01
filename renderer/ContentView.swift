@@ -154,7 +154,7 @@ struct ContentView: View {
     @State private var camera = Camera(
         frameCenter: Point3d(x: 0, y: 0, z: 1),
         direction: Vector3d(Point3d(x: 0, y: 0, z: -1)).normalize(),
-        fovRadians: 170/180 * Double.pi,
+        fovRadians: 70/180 * Double.pi,
         frameWidth: 1,
         frameHeight: 1
     )
