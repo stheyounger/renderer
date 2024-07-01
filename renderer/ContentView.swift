@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import GameController
 
 //asdfagre
 struct ContentView: View {
+    
     
     private let angleChangeRadians = Double.pi/20
     private let movementAmount = 0.1
@@ -49,6 +51,7 @@ struct ContentView: View {
     
     var body: some View {
         
+        
         let platforms = [
             Cuboid(color: .brown, center: Point3d(x: 0, y: -1, z: 0), xLength: 2, yLength: 0.5, zLength: 2)
         ]
@@ -76,7 +79,7 @@ struct ContentView: View {
         let renderer = Renderer3d()
         let drawToScreen = DrawToScreen()
         
-        return Canvas { context, size in
+        let canvas = Canvas { context, size in
             
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: 
                 platformMeshes + cube2 + [
@@ -161,6 +164,10 @@ struct ContentView: View {
             }
             return .handled
         })
+        return ZStack {
+            canvas
+            GamepadView()
+        }
     }
 }
 

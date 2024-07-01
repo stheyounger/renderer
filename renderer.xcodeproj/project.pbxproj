@@ -28,6 +28,7 @@
 		F77D6E222C17A36500AD6835 /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E212C17A36500AD6835 /* Camera.swift */; };
 		F7D263D02C3335D500D32B66 /* cuboid.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D263CF2C3335D500D32B66 /* cuboid.swift */; };
 		F7D263D22C3338C900D32B66 /* DrawToScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D263D12C3338C900D32B66 /* DrawToScreen.swift */; };
+		F7D263D72C333EA700D32B66 /* GamepadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D263D62C333EA700D32B66 /* GamepadViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +75,7 @@
 		F7C20B342C19487A00B2A1AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		F7D263CF2C3335D500D32B66 /* cuboid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cuboid.swift; sourceTree = "<group>"; };
 		F7D263D12C3338C900D32B66 /* DrawToScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawToScreen.swift; sourceTree = "<group>"; };
+		F7D263D62C333EA700D32B66 /* GamepadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamepadViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +135,7 @@
 				F70266202BFE3FB1008A597E /* Assets.xcassets */,
 				F70266222BFE3FB1008A597E /* renderer.entitlements */,
 				F70266232BFE3FB1008A597E /* Preview Content */,
+				F7D263D62C333EA700D32B66 /* GamepadViewController.swift */,
 			);
 			path = renderer;
 			sourceTree = "<group>";
@@ -330,6 +333,7 @@
 				F77D6E1C2C17A1C400AD6835 /* Vector3d.swift in Sources */,
 				F702661F2BFE3FAF008A597E /* ContentView.swift in Sources */,
 				F77D6E162C17A12600AD6835 /* Point3d.swift in Sources */,
+				F7D263D72C333EA700D32B66 /* GamepadViewController.swift in Sources */,
 				F7D263D02C3335D500D32B66 /* cuboid.swift in Sources */,
 				F77D6E142C17A0F600AD6835 /* Point2d.swift in Sources */,
 				F77D6E1A2C17A1A400AD6835 /* Triangle.swift in Sources */,
