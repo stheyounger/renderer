@@ -26,6 +26,8 @@
 		F77D6E1E2C17A1DC00AD6835 /* Plane.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E1D2C17A1DC00AD6835 /* Plane.swift */; };
 		F77D6E202C17A1F200AD6835 /* Renderer3d.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E1F2C17A1F200AD6835 /* Renderer3d.swift */; };
 		F77D6E222C17A36500AD6835 /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77D6E212C17A36500AD6835 /* Camera.swift */; };
+		F7D263D02C3335D500D32B66 /* cuboid.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D263CF2C3335D500D32B66 /* cuboid.swift */; };
+		F7D263D22C3338C900D32B66 /* DrawToScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D263D12C3338C900D32B66 /* DrawToScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +72,8 @@
 		F77D6E1F2C17A1F200AD6835 /* Renderer3d.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer3d.swift; sourceTree = "<group>"; };
 		F77D6E212C17A36500AD6835 /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
 		F7C20B342C19487A00B2A1AB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F7D263CF2C3335D500D32B66 /* cuboid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cuboid.swift; sourceTree = "<group>"; };
+		F7D263D12C3338C900D32B66 /* DrawToScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawToScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +134,7 @@
 				F70266232BFE3FB1008A597E /* Preview Content */,
 				F77D6E1F2C17A1F200AD6835 /* Renderer3d.swift */,
 				F77D6E212C17A36500AD6835 /* Camera.swift */,
+				F7D263D12C3338C900D32B66 /* DrawToScreen.swift */,
 			);
 			path = renderer;
 			sourceTree = "<group>";
@@ -179,6 +184,7 @@
 				F77D6E1D2C17A1DC00AD6835 /* Plane.swift */,
 				F73874172C1A5E26007906F5 /* Surface3d.swift */,
 				F76A27BF2C33315600B6DE1C /* polygon.swift */,
+				F7D263CF2C3335D500D32B66 /* cuboid.swift */,
 			);
 			path = geometry;
 			sourceTree = "<group>";
@@ -316,6 +322,7 @@
 				F77D6E1C2C17A1C400AD6835 /* Vector3d.swift in Sources */,
 				F702661F2BFE3FAF008A597E /* ContentView.swift in Sources */,
 				F77D6E162C17A12600AD6835 /* Point3d.swift in Sources */,
+				F7D263D02C3335D500D32B66 /* cuboid.swift in Sources */,
 				F77D6E142C17A0F600AD6835 /* Point2d.swift in Sources */,
 				F77D6E1A2C17A1A400AD6835 /* Triangle.swift in Sources */,
 				F73874142C1A4246007906F5 /* Matrix.swift in Sources */,
@@ -326,6 +333,7 @@
 				F73874182C1A5E26007906F5 /* Surface3d.swift in Sources */,
 				F76A27BE2C310F2900B6DE1C /* Vector2d.swift in Sources */,
 				F76A27C02C33315600B6DE1C /* polygon.swift in Sources */,
+				F7D263D22C3338C900D32B66 /* DrawToScreen.swift in Sources */,
 				F77D6E182C17A16700AD6835 /* Line.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -499,8 +507,7 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
@@ -538,8 +545,7 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
