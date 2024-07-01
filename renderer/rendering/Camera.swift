@@ -173,11 +173,11 @@ struct Camera {
         let newBasis = Matrix3x3([
             newBasisOrientation.xDirection.dimensions,
             newBasisOrientation.yDirection.dimensions,
-            newZ.dimensions
-        ]).inverse()
+            newBasisOrientation.zDirection.dimensions
+        ])
 
         let forward = orientation.zDirection.translated(matrixColumns: newBasis.columns)
-        let horizontal = Camera.createOrientationFromZDirection(zDirection: forward, previousOrientation: orientation).xDirection
+        let horizontal = orientation.xDirection.translated(matrixColumns: newBasis.columns)//Camera.createOrientationFromZDirection(zDirection: forward, previousOrientation: orientation).xDirection
         let vertical = orientation.yDirection.translated(matrixColumns: newBasis.columns)
         
         return Camera(

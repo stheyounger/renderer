@@ -198,9 +198,13 @@ struct ContentView: View {
                     
                     let rightStick = controller?.rightThumbstick
                     let rightX = Double(rightStick?.xAxis.value ?? 0)
+                    let rightY = Double(rightStick?.yAxis.value ?? 0)
                     
                     let rotationSpeedMultiplier = 0.08
-                    changeHorizontal(angleChangeRadians: rotationSpeedMultiplier * -rightX)
+                    camera = camera.changeAngle(
+                        horizontalAngleChangeRadians: rotationSpeedMultiplier * -rightX,
+                        verticalAngleChangeRadians: 0//rotationSpeedMultiplier * rightY
+                    )
                     
                     if (controller!.buttonB.isPressed == true) {
                         displayMode = switch (displayMode) {

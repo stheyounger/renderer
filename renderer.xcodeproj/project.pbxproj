@@ -29,6 +29,7 @@
 		F7D263D02C3335D500D32B66 /* cuboid.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D263CF2C3335D500D32B66 /* cuboid.swift */; };
 		F7D263D22C3338C900D32B66 /* DrawToScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D263D12C3338C900D32B66 /* DrawToScreen.swift */; };
 		F7D263D72C333EA700D32B66 /* GamepadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D263D62C333EA700D32B66 /* GamepadViewController.swift */; };
+		F7D263D92C33620800D32B66 /* quaternion.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D263D82C33620800D32B66 /* quaternion.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +77,7 @@
 		F7D263CF2C3335D500D32B66 /* cuboid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = cuboid.swift; sourceTree = "<group>"; };
 		F7D263D12C3338C900D32B66 /* DrawToScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawToScreen.swift; sourceTree = "<group>"; };
 		F7D263D62C333EA700D32B66 /* GamepadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamepadViewController.swift; sourceTree = "<group>"; };
+		F7D263D82C33620800D32B66 /* quaternion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = quaternion.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -171,6 +173,7 @@
 				F73874132C1A4246007906F5 /* Matrix.swift */,
 				F77D6E1B2C17A1C400AD6835 /* Vector3d.swift */,
 				F76A27BD2C310F2900B6DE1C /* Vector2d.swift */,
+				F7D263D82C33620800D32B66 /* quaternion.swift */,
 			);
 			path = math;
 			sourceTree = "<group>";
@@ -343,6 +346,7 @@
 				F77D6E1E2C17A1DC00AD6835 /* Plane.swift in Sources */,
 				F77D6E202C17A1F200AD6835 /* Renderer3d.swift in Sources */,
 				F73874182C1A5E26007906F5 /* Surface3d.swift in Sources */,
+				F7D263D92C33620800D32B66 /* quaternion.swift in Sources */,
 				F76A27BE2C310F2900B6DE1C /* Vector2d.swift in Sources */,
 				F76A27C02C33315600B6DE1C /* polygon.swift in Sources */,
 				F7D263D22C3338C900D32B66 /* DrawToScreen.swift in Sources */,
