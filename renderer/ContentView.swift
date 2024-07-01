@@ -294,7 +294,6 @@ struct ContentView: View {
             
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: 
                 platformMeshes + cube2 + [
-//                                                         [
                     xOrigin,
                     yOrigin,
                     zOrigin
@@ -315,7 +314,9 @@ struct ContentView: View {
             
             reorientedCoordinates.forEach { surface in
                 surface.polygons.forEach { polygon in
-                    context.fill(polygonToCGPath(polygon), with: .color(surface.color))
+                    let path = Polygon(orderedVertices: polygon.orderedVertices + [polygon.orderedVertices.first!])
+                    context.stroke(polygonToCGPath(path), with: .color(surface.color))
+//                    context.fill(polygonToCGPath(polygon), with: .color(surface.color))
                 }
             }
             
