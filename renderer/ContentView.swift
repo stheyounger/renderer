@@ -134,17 +134,7 @@ struct Cuboid {
         ]
     }
 }
-//asdfasdf
-//protocol Object {
-//    func mesh() -> [Surface3d]
-//    func contains(point: Point3d) -> Bool
-//}
-//
-//extension Object {
-//    func isColliding(_ other: Object) -> Bool {
-//        
-//    }
-//}
+
 //asdfagre
 struct ContentView: View {
     
