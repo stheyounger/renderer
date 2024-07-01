@@ -243,18 +243,6 @@ struct ContentView: View {
     
     private func changeVertical(angleChangeRadians: Double) {
         camera = camera.changeAngle(horizontalAngleChangeRadians: 0, verticalAngleChangeRadians: angleChangeRadians)
-        
-//        let directionChange = Vector3d(Point3d(
-//            x: 0,
-//            y: sin(angleChangeRadians),
-//            z: cos(angleChangeRadians)
-//        )).normalize()
-//        
-//        let vertical = Vector3d(Point3d(x: 0, y: 1, z: 0))
-//        let notVerticalYet = abs(directionChange.dot(vertical)) < 0.99
-//        if (notVerticalYet) {
-////            changeAngle(directionChange: directionChange)
-//        }
     }
     
     private func translateBy(_ positionChange: Point3d) {
@@ -268,8 +256,6 @@ struct ContentView: View {
             camera.horizontalDirection.dimensions,
             vert.dimensions,
             forward.dimensions
-//            camera.verticalDirection.dimensions,
-//            direction.dimensions
         ])
         
         camera = camera.changeFrameCenter(frameCenterChange: adjustedPositionChange.toPoint3d())
@@ -307,8 +293,8 @@ struct ContentView: View {
         return Canvas { context, size in
             
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: 
-//                platformMeshes + cube2 + [
-                                                         [
+                platformMeshes + cube2 + [
+//                                                         [
                     xOrigin,
                     yOrigin,
                     zOrigin
