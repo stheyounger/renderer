@@ -79,6 +79,9 @@ struct ContentView: View {
         let renderer = Renderer3d()
         let drawToScreen = DrawToScreen()
         
+        let gamepad = GamepadView()
+        
+        
         let canvas = Canvas { context, size in
             
             let rendering: [Surface2d] = renderer.render(camera: camera, objects: 
@@ -166,7 +169,34 @@ struct ContentView: View {
         })
         return ZStack {
             canvas
-            GamepadView()
+            gamepad.onAppear(perform: {
+                print("hi there")
+                
+                gamepad.vc.virtualController!.controller!.gamepad?.valueChangedHandler = { (value, fdas) in
+                    let controller = value.controller?.extendedGamepad!
+                    
+                    let leftStick = controller?.leftThumbstick
+                    let leftY = Double(leftStick?.yAxis.value ?? 0)
+                    let leftX = Double(leftStick?.xAxis.value ?? 0)
+                    
+                    let upDown: Double;
+                    if (controller?.buttonX.isPressed == true) {
+                        upDown = movementAmount
+                    } else if (controller?.buttonA.isPressed == true) {
+                        upDown = -movementAmount
+                    } else {
+                        upDown = 0
+                    }
+                    
+                    translateBy(Point3d(x: leftX, y: upDown, z: leftY))
+                    
+                    
+                    let rightStick = controller?.rightThumbstick
+                    let rightX = Double(rightStick?.xAxis.value ?? 0)
+                    
+                    changeHorizontal(angleChangeRadians: -angleChangeRadians * rightX)
+                }
+            })
         }
     }
 }

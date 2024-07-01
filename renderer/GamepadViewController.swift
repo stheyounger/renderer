@@ -18,7 +18,7 @@ class GamepadViewController: UIViewController {
         
         if (virtualController == nil) {
             let config: GCVirtualController.Configuration = GCVirtualController.Configuration()
-            config.elements = NSSet(array: [
+                config.elements = NSSet(array: [
                 GCInputButtonA,
                 GCInputButtonB,
                 GCInputButtonX,
@@ -26,12 +26,12 @@ class GamepadViewController: UIViewController {
                 GCInputLeftThumbstick,
                 GCInputRightThumbstick
             ]) as! Set<String>
-            
+
             virtualController = GCVirtualController(configuration: config)
         }
         virtualController?.connect()
     }
-    
+
     
     
     
@@ -51,8 +51,9 @@ class GamepadViewController: UIViewController {
 struct GamepadView: UIViewControllerRepresentable {
     typealias UIViewControllerType = GamepadViewController
     
+    public let vc = GamepadViewController()
+    
     func makeUIViewController(context: Context) -> GamepadViewController {
-        let vc = GamepadViewController()
         // Do some configurations here if needed.
         return vc
     }
