@@ -20,6 +20,7 @@ struct Orientation3d {
 }
 
 struct Camera {
+    //Note: make the position and rotation of the camera be relative to the focal point instead of the frame center
     let frameCenter: Point3d
     
     let direction: Vector3d

@@ -121,7 +121,8 @@ struct Renderer3d {
         }
     }
     
-    private func renderTriangle(triangle: Triangle<Point3d>, camera: Camera) -> [Triangle<RenderedPoint>]? {
+    //Refactoring to return lines instead of triangles
+    private func renderTriangle(triangle: Triangle<Point3d>, camera: Camera) -> [Line<Point2d>]? {
         
         let numberOfVerticesInFrame = triangle.orderedVertices.reduce(0, { acc, point in
             if (isPointInFrontOfCamera(point: point, camera: camera)) {
@@ -168,13 +169,35 @@ struct Renderer3d {
         }
     }
     
-    func render(camera: Camera, objects: [Surface3d]) -> [Surface2d] {
-        return objects.map { object in
-            let renderedTriangles: [Triangle<RenderedPoint>] = object.triangles.compactMap { triangle in
-                renderTriangle(triangle: triangle, camera: camera)
+    struct RenderedLine {
+        let line: Line<Point2d>
+        let color: Color
+        
+        init(line: Line<Point2d>, color: Color) {
+            self.line = line
+            self.color = color
+        }
+    }
+    func render(camera: Camera, objects: [Surface3d]) -> [RenderedLine] {
+        let allRenderedLines: [RenderedLine] = objects.map { surface in
+            let renderedSurface: [RenderedLine] = surface.triangles.compactMap { triangle in
+                
+                let renderedTriangle: [Line<Point2d>]? = renderTriangle(triangle: triangle, camera: camera)
+                
+                if (renderedTriangle != nil) {
+                    
+                    let renderedLines: [RenderedLine] = renderedTriangle!.map { line in
+                        return RenderedLine(line: line, color: surface.color)
+                    }
+                    
+                    return renderedLines
+                } else {
+                    return nil
+                }
             }.flatMap { $0 }
             
-            return Surface2d(triangles: renderedTriangles, color: object.color)
+            return renderedSurface
         }
+        return allRenderedLines
     }
 }
