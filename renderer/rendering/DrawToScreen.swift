@@ -96,17 +96,62 @@ struct DrawToScreen {
         return Path(path)
     }
     
+    private func drawLines(objects: [Surface2d], context: GraphicsContext) {
+        
+        struct Surface2dLine <Point> {
+            let color: Color
+            let line: Line<Point>
+            
+            init(color: Color, line: Line<Point>) {
+                self.color = color
+                self.line = line
+            }
+        }
+        
+        let allLines = objects.flatMap { surface in
+            surface.triangles.flatMap { polygon in
+                polygon.orderedVertices.enumerated().map { i, vertex in
+                    
+                    let nextVertexIndex: Int;
+                    if (i+1 < polygon.orderedVertices.count) {
+                        nextVertexIndex = i + 1
+                    } else {
+                        nextVertexIndex = 0
+                    }
+                    let nextVertex = polygon.orderedVertices[nextVertexIndex]
+                    
+                    return Surface2dLine(color: surface.color, line: Line(start: vertex, end: nextVertex))
+                }
+            }
+        }
+        
+        let linesSortedByDepth = allLines.sorted(by: { a, b in
+            
+            let aDepth = a.line.start.depth + a.line.end.depth
+            let bDepth = b.line.start.depth + b.line.end.depth
+            
+            let aGoesBeforeB = aDepth > bDepth
+            return aGoesBeforeB
+        })
+        
+        
+        linesSortedByDepth.forEach { surfaceLine in
+            let line = Line(start: surfaceLine.line.start.point, end: surfaceLine.line.end.point)
+            let depth = surfaceLine.line.start.depth + surfaceLine.line.end.depth
+            context.stroke(lineToCGPath(line), with: .color(surfaceLine.color), lineWidth: depth)
+        }
+    }
+    
     enum DisplayMode {
         case Wireframe
         case Surface
     }
-    
     func draw(rendering: [Surface2d], camera: Camera, frameSize: CGSize, context: GraphicsContext, displayMode: DisplayMode) {
         let reorientedCoordinates: [Surface2d] = rendering.map { surface in
             let color = surface.color
             
-            let adjustedPolygons = surface.polygons.map { polygon in
-                Polygon<RenderedPoint>(orderedVertices: polygon.orderedVertices.map { point in
+            let adjustedPolygons = surface.triangles.map { triangle in
+                Triangle<RenderedPoint>(orderedVertices: triangle.orderedVertices.map { point in
                     RenderedPoint(
                         point: reorientCoordinates(point.point, frameSize: frameSize, camera: camera),
                         depth: point.depth
@@ -114,66 +159,47 @@ struct DrawToScreen {
                 })
             }
             
-            return Surface2d(polygons: adjustedPolygons, color: color)
+            return Surface2d(triangles: adjustedPolygons, color: color)
         }
         
         
     
         switch (displayMode) {
         case .Wireframe:
+            drawLines(objects: reorientedCoordinates, context: context)
+        case .Surface:
+            drawLines(objects: reorientedCoordinates, context: context)
             
-            struct Surface2dLine <Point> {
-                let color: Color
-                let line: Line<Point>
-                
-                init(color: Color, line: Line<Point>) {
-                    self.color = color
-                    self.line = line
-                }
-            }
-            
-            let allLines = reorientedCoordinates.flatMap { surface in
-                surface.polygons.flatMap { polygon in
-                    polygon.orderedVertices.enumerated().map { i, vertex in
-                        
-                        let nextVertexIndex: Int;
-                        if (i+1 < polygon.orderedVertices.count) {
-                            nextVertexIndex = i + 1
-                        } else {
-                            nextVertexIndex = 0
+            let surfacesOrderedByDepth = reorientedCoordinates.sorted(by: { A, B in
+    
+                func calcDepth(_ surface: Surface2d) -> Double {
+                    let sumOfDepths = surface.triangles.reduce(0) { acc, triangle in
+                        acc + triangle.orderedVertices.reduce(0) { acc, renderedPoint in
+                            acc + renderedPoint.depth
                         }
-                        let nextVertex = polygon.orderedVertices[nextVertexIndex]
-                        
-                        return Surface2dLine(color: surface.color, line: Line(start: vertex, end: nextVertex))
                     }
+    
+                    let numberOfTriangles = Double(surface.triangles.count)
+                    
+                    let depthOfSurface = sumOfDepths / numberOfTriangles
+
+                    return depthOfSurface
                 }
-            }
-            
-            let linesSortedByDepth = allLines.sorted(by: { a, b in
-                
-                let aDepth = a.line.start.depth + a.line.end.depth
-                let bDepth = b.line.start.depth + b.line.end.depth
-                
-                let aGoesBeforeB = aDepth > bDepth
-                return aGoesBeforeB
+    
+                let aIsBeforeB = calcDepth(A) > calcDepth(B)
+    
+                return aIsBeforeB
             })
             
-            
-            linesSortedByDepth.forEach { surfaceLine in
-                let line = Line(start: surfaceLine.line.start.point, end: surfaceLine.line.end.point)
-                let depth = surfaceLine.line.start.depth + surfaceLine.line.end.depth
-                context.stroke(lineToCGPath(line), with: .color(surfaceLine.color), lineWidth: depth)
-            }
-            
-        case .Surface:
-            reorientedCoordinates.forEach { surface in
-                surface.polygons.forEach { polygon in
+            surfacesOrderedByDepth.forEach { surface in
+                surface.triangles.forEach { polygon in
                     let pointPolygon = Polygon(orderedVertices: polygon.orderedVertices.map { pointPlus in
                         pointPlus.point
                     })
                     context.fill(polygonToCGPath(pointPolygon.reorderVertices()), with: .color(surface.color))
                 }
             }
+            
         }
     }
 }

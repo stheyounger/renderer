@@ -20,11 +20,11 @@ struct RenderedPoint {
 }
 
 struct Surface2d {
-    let polygons: [Polygon<RenderedPoint>]
+    let triangles: [Triangle<RenderedPoint>]
     let color: Color
     
-    init(polygons: [Polygon<RenderedPoint>], color: Color) {
-        self.polygons = polygons
+    init(triangles: [Triangle<RenderedPoint>], color: Color) {
+        self.triangles = triangles
         self.color = color
     }
 }
@@ -95,7 +95,33 @@ struct Renderer3d {
         )
     }
     
-    private func renderTriangle(triangle: Triangle<Point3d>, camera: Camera) -> Polygon<RenderedPoint>? {
+    private func makeUpInfinitelyFarPoints(projectedPoint: ProjectedPoint, projectedPoints: [ProjectedPoint], distanceToOffscreen: Double) -> [RenderedPoint] {
+        let point = projectedPoint.point
+        return projectedPoints.compactMap { otherProjectedPoint in
+            let otherPoint = otherProjectedPoint.point
+            
+            if (otherProjectedPoint.dotProduct < 0) {
+                if (otherPoint != point) {
+                    let rayDirection = Vector2d(otherPoint!.minus(point!)).normalize()
+                    
+                    let vectorFromOtherToFalselyProjected = rayDirection.times(distanceToOffscreen)
+                    
+                    return RenderedPoint(
+                        point: vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!),
+                        depth: otherProjectedPoint.depth
+                    )
+                } else {
+                    return nil as RenderedPoint?
+                }
+            } else if (otherProjectedPoint.dotProduct > 0) {
+                return nil as RenderedPoint?
+            } else {
+                return nil as RenderedPoint?
+            }
+        }
+    }
+    
+    private func renderTriangle(triangle: Triangle<Point3d>, camera: Camera) -> [Triangle<RenderedPoint>]? {
         
         let numberOfVerticesInFrame = triangle.orderedVertices.reduce(0, { acc, point in
             if (isPointInFrontOfCamera(point: point, camera: camera)) {
@@ -108,8 +134,6 @@ struct Renderer3d {
         let anyVerticesAreInFrame = numberOfVerticesInFrame > 0
         if (anyVerticesAreInFrame) {
             
-            print("\(numberOfVerticesInFrame) vertices in frame")
-            
             let projectedPoints = triangle.orderedVertices.map { point in
                 return projectPoint(
                     point: point,
@@ -117,79 +141,40 @@ struct Renderer3d {
                 )
             }
             
-            let polygonPoints: [RenderedPoint] = projectedPoints.flatMap { projectedPoint in
-                let point = projectedPoint.point
+            let allVerticesAreInFrame = numberOfVerticesInFrame == 3
+            if (allVerticesAreInFrame) {
+                return [Triangle(orderedVertices: projectedPoints.map { projectedPoint in RenderedPoint(point: projectedPoint.point!, depth: projectedPoint.depth) })]
+            } else {
                 
-                if (projectedPoint.dotProduct < 0) {
-                    return [RenderedPoint(point: projectedPoint.point!, depth: projectedPoint.depth)]
-                } else if (projectedPoint.dotProduct > 0) {
+                let incorrectlyProjectedPoints = projectedPoints.filter { projectedPoint in
+                    projectedPoint.dotProduct >= 0
+                }
+                let correctlyProjectedPoints = projectedPoints.filter { projectedPoint in
+                    projectedPoint.dotProduct < 0
+                }
+                print("number of incorrectlyProjectedPoints: \(incorrectlyProjectedPoints.count)")
+                return incorrectlyProjectedPoints.map { incorrectlyProjectedPoint in
+                    let fixedPoints = makeUpInfinitelyFarPoints(
+                        projectedPoint: incorrectlyProjectedPoint,
+                        projectedPoints: projectedPoints,
+                        distanceToOffscreen: hypot(camera.frameWidth, camera.frameHeight) * 2
+                    )
                     
-                    return projectedPoints.compactMap { otherProjectedPoint in
-                        let otherPoint = otherProjectedPoint.point
-                        
-                        if (otherProjectedPoint.dotProduct < 0) {
-                            if (otherPoint != point) {
-                                let rayDirection = Vector2d(otherPoint!.minus(point!)).normalize()
-                                
-                                let largestDistanceOnScreen = hypot(camera.frameWidth, camera.frameHeight)
-                                
-                                let vectorFromOtherToFalselyProjected = rayDirection.times(largestDistanceOnScreen)
-                                
-                                return RenderedPoint(
-                                    point: vectorFromOtherToFalselyProjected.toPoint2d().plus(otherPoint!),
-                                    depth: projectedPoint.depth
-                                )
-                            } else {
-                                return nil as RenderedPoint?
-                            }
-                        } else if (otherProjectedPoint.dotProduct > 0) {
-                            return nil as RenderedPoint?
-                        } else {
-                            return nil as RenderedPoint?
-                        }
-                    }
-                } else {
-                    return []
+                    return Triangle(orderedVertices: fixedPoints + correctlyProjectedPoints.map { projectedPoint in RenderedPoint(point: projectedPoint.point!, depth: projectedPoint.depth) })
                 }
             }
-            print("polygonPoints: \(polygonPoints)\n")
-            
-            return Polygon(orderedVertices: polygonPoints)
-            
         } else {
-            return nil as Polygon<RenderedPoint>?
+            return nil
         }
     }
     
     func render(camera: Camera, objects: [Surface3d]) -> [Surface2d] {
-        
-//        let surfacesOrderedByDepth = objects.sorted(by: { A, B in
-//            
-//            func calcDepth(_ surface: Surface3d) -> Double {
-//                let sumOfCenters = surface.triangles.reduce(Point3d(x: 0, y: 0, z: 0)) { acc, triangle in
-//                    acc.plus(triangle.centerPoint3d()!)
-//                }
-//                
-//                let numberOfTriangles = Double(surface.triangles.count)
-//                let centerOfSurface = Point3d(x: sumOfCenters.x/numberOfTriangles, y: sumOfCenters.y/numberOfTriangles, z: sumOfCenters.z/numberOfTriangles)
-//                
-//                let distanceToCameraCenter = camera.frameCenter.distance(centerOfSurface)
-//                return distanceToCameraCenter
-//            }
-//            
-//            let aIsBeforeB = calcDepth(A) > calcDepth(B)
-//            
-//            return aIsBeforeB
-//        })
-        
-        
-        
         return objects.map { object in
-            let renderedPolygons = object.triangles.compactMap { triangle in
+            let renderedTriangles: [Triangle<RenderedPoint>] = object.triangles.compactMap { triangle in
                 renderTriangle(triangle: triangle, camera: camera)
-            }
+            }.flatMap { $0 }
             
-            return Surface2d(polygons: renderedPolygons, color: object.color)
+            return Surface2d(triangles: renderedTriangles, color: object.color)
         }
     }
 }
